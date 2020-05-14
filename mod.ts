@@ -5,17 +5,29 @@ export interface CSVReaderOptions {
   columnSeparator: Uint8Array;
   lineSeparator: Uint8Array;
   quote: Uint8Array;
+  _readerIteratorBufferSize: number;
+  _columnBufferMinStepSize: number;
+  _inputBufferIndexLimit: number;
+  _stats: {
+    reads: number;
+    inputBufferShrinks: number;
+    columnBufferExpands: number;
+  };
 }
 
 const defaultCSVReaderOptions = {
   columnSeparator: new Uint8Array([44]), // ,
   lineSeparator: new Uint8Array([10]), // \n
   quote: new Uint8Array([34]), // "
+  _readerIteratorBufferSize: 1024,
+  _columnBufferMinStepSize: 1024,
+  _inputBufferIndexLimit: 1024,
+  _stats: {
+    reads: 0,
+    inputBufferShrinks: 0,
+    columnBufferExpands: 0,
+  },
 };
-
-const ITER_READ_BUFFER_SIZE = 1024;
-const COLUMN_BUFFER_MIN_STEP_SIZE = 1024;
-const INPUT_BUFFER_INDEX_LIMIT = 1024;
 
 function debug(msg: string) {
   getLogger("csv").debug(msg);
@@ -27,9 +39,20 @@ function hasPrefixFrom(a: Uint8Array, prefix: Uint8Array, offset: number) {
 
 export async function* readCSV(
   reader: Deno.Reader,
-  options: CSVReaderOptions = defaultCSVReaderOptions,
+  options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<string[]> {
-  const { columnSeparator, lineSeparator, quote } = options;
+  const {
+    columnSeparator,
+    lineSeparator,
+    quote,
+    _readerIteratorBufferSize,
+    _columnBufferMinStepSize,
+    _inputBufferIndexLimit,
+    _stats,
+  } = {
+    ...defaultCSVReaderOptions,
+    ...options,
+  };
   const doubleQuote = repeat(quote, 2);
 
   const decoder = new TextDecoder();
@@ -41,12 +64,12 @@ export async function* readCSV(
     1,
   );
   const columnBufferStepSize = Math.max(
-    COLUMN_BUFFER_MIN_STEP_SIZE,
+    _columnBufferMinStepSize,
     minPossibleBufferReserve,
   );
 
   const readerIterator = Deno.iter(reader, {
-    bufSize: ITER_READ_BUFFER_SIZE,
+    bufSize: _readerIteratorBufferSize,
   });
 
   let inputBuffer = new Uint8Array();
@@ -73,12 +96,12 @@ export async function* readCSV(
   const skip = (chars: Uint8Array) => {
     inputBufferIndex += chars.length;
   };
+  const inputBufferUnprocessed = () => inputBuffer.length - inputBufferIndex;
 
   while (true) {
-    const inputBufferUnprocessed = inputBuffer.length - inputBufferIndex;
-
     // lacks of data
-    if (!readerEmpty && inputBufferUnprocessed < minPossibleBufferReserve) {
+    if (!readerEmpty && inputBufferUnprocessed() < minPossibleBufferReserve) {
+      _stats.reads++;
       debug("read more data");
       const { done, value } = await readerIterator.next();
       if (done) {
@@ -90,8 +113,9 @@ export async function* readCSV(
     }
 
     // buffer could be emptied
-    if (inputBufferIndex >= INPUT_BUFFER_INDEX_LIMIT) {
-      debug("slice buffer");
+    if (inputBufferIndex >= _inputBufferIndexLimit) {
+      _stats.inputBufferShrinks++;
+      debug("shrink input buffer");
       inputBuffer = inputBuffer.slice(inputBufferIndex);
       inputBufferIndex = 0;
       continue;
@@ -99,6 +123,7 @@ export async function* readCSV(
 
     // column buffer is almost full
     if (columnBuffer.length - columnBufferIndex < minPossibleBufferReserve) {
+      _stats.columnBufferExpands++;
       const newColumn = new Uint8Array(
         columnBuffer.length + columnBufferStepSize,
       );
@@ -110,7 +135,7 @@ export async function* readCSV(
       continue;
     }
 
-    if (!inColumn && inputBufferUnprocessed === 0) {
+    if (!inColumn && inputBufferUnprocessed() === 0) {
       debug("eof");
       if (!emptyLine) {
         appendColumn();
@@ -164,13 +189,26 @@ export async function* readCSV(
       inQuote = false;
       inColumn = false;
       skip(quote);
+      if (
+        inputBufferUnprocessed() > 0 &&
+        !hasNext(lineSeparator) &&
+        !hasNext(columnSeparator)
+      ) {
+        throw new Error(
+          `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${
+            String.fromCharCode(
+              inputBuffer[inputBufferIndex],
+            )
+          }`,
+        );
+      }
       continue;
     }
 
     if (
       inColumn &&
       !inQuote &&
-      (inputBufferUnprocessed === 0 ||
+      (inputBufferUnprocessed() === 0 ||
         hasNext(lineSeparator) ||
         hasNext(columnSeparator))
     ) {
@@ -179,10 +217,14 @@ export async function* readCSV(
       continue;
     }
 
-    if (inColumn && inputBufferUnprocessed > 0) {
+    if (inColumn && inputBufferUnprocessed() > 0) {
       debug("read char");
       columnBuffer[columnBufferIndex++] = inputBuffer[inputBufferIndex++];
       continue;
+    }
+
+    if (inQuote && inputBufferUnprocessed() === 0) {
+      throw new Error("Expected quote, received EOF");
     }
 
     throw new Error("unexpected");
