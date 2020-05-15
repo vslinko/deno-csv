@@ -5,6 +5,7 @@
 [![tag](https://img.shields.io/github/tag/vslinko/deno-csv.svg)](https://github.com/vslinko/deno-csv)
 [![Build Status](https://github.com/vslinko/deno-csv/workflows/ci/badge.svg?branch=master)](https://github.com/vslinko/deno-csv/actions)
 [![license](https://img.shields.io/github/license/vslinko/deno-csv.svg)](https://github.com/vslinko/deno-csv)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/csv/mod.ts)
 
 # Usage
 
