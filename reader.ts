@@ -1,6 +1,7 @@
 import { repeat, concat } from "./deps.ts";
 import { hasPrefixFrom, debug, getUint8Array } from "./utils.ts";
 
+/** Options for CSV reader */
 export interface CSVReaderOptions {
   columnSeparator: string | Uint8Array;
   lineSeparator: string | Uint8Array;
@@ -56,6 +57,15 @@ class Row implements AsyncIterableIterator<string> {
   }
 }
 
+/** Read CSV as stream of steams of cells:
+ *
+ *       for await (const row of readCSV(f)) {
+ *         console.log('row:')
+ *         for await (const cell of row) {
+ *           console.log(`  cell: ${cell}`);
+ *         }
+ *       }
+ */
 export async function* readCSV(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
@@ -76,6 +86,12 @@ export async function* readCSV(
   }
 }
 
+/** Read CSV as stream of arrays of cells:
+ *
+ *       for await (const row of readCSVRows(f)) {
+ *         console.log(`row: ${row.join(' ')}`)
+ *       }
+ */
 export async function* readCSVRows(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
@@ -89,8 +105,19 @@ export async function* readCSVRows(
   }
 }
 
+/** readCSVStream returns this symbol to show that row is ended */
 export const newLine = Symbol.for("newLine");
 
+/** Read CSV as stream of cells and newlines:
+ *
+ *       for await (const token of readCSVStream(f)) {
+ *         if (token === newLine) {
+ *           console.log('new line');
+ *         } else {
+ *           console.log(`cell: ${token}`);
+ *         }
+ *       }
+ */
 export async function* readCSVStream(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
@@ -280,6 +307,12 @@ export async function* readCSVStream(
   }
 }
 
+/** Read CSV as stream of objects:
+ *
+ *       for await (const obj of readCSVObjects(f)) {
+ *         console.log(obj);
+ *       }
+ */
 export async function* readCSVObjects(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,

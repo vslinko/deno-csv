@@ -8,12 +8,14 @@ import {
   getUint8Array,
 } from "./utils.ts";
 
+/** Options for CSV writer */
 export interface CSVWriterOptions {
   columnSeparator: string | Uint8Array;
   lineSeparator: string | Uint8Array;
   quote: string | Uint8Array;
 }
 
+/** Options for `CSVWriter.writeCell` */
 export interface CSVWriteCellOptions {
   forceQuotes: boolean;
 }
@@ -24,6 +26,16 @@ const defaultCSVWriterOptions = {
   quote: '"',
 };
 
+/** Class for manual CSV writing:
+ *
+ *       const writer = new CSVWriter(f, {
+ *         columnSeparator: "\t",
+ *         lineSeparator: "\r\n",
+ *       });
+ *       await writer.writeCell("a\nb");
+ *       await writer.nextLine();
+ *       await writer.writeCell('1"2');
+ */
 export class CSVWriter {
   private writer: Deno.Writer;
   private columnSeparator: Uint8Array;
@@ -135,6 +147,16 @@ export class CSVWriter {
   }
 }
 
+/** Write CSV with sync or async row iterators:
+ *
+ *       await writeCSV(f, [["a", "b"], ["1", "2"]]);
+ * 
+ *       const asyncRowGenerator = async function*() {
+ *         yield ["a", "b"];
+ *         yield ["1", "2"];
+ *       }
+ *       await writeCSV(f, asyncRowGenerator());
+ */
 export async function writeCSV(
   writer: Deno.Writer,
   iter: SyncAsyncIterable<
@@ -159,6 +181,16 @@ export async function writeCSV(
   }
 }
 
+/** Write CSV with sync or async object iterators:
+ *
+ *       await writeCSVObjects(f, [{a: "1"}, {a: "2"}], { header: ["a"] });
+ * 
+ *       const asyncObjectsGenerator = async function*() {
+ *         yield { a: "1", b: "2", c: "3" };
+ *         yield { a: "4", b: "5", c: "6" };
+ *       }
+ *       await writeCSVObjects(f, asyncObjectsGenerator(), { header: ["a", "b", "c"] });
+ */
 export async function writeCSVObjects(
   writer: Deno.Writer,
   iter: SyncAsyncIterable<{ [key: string]: string }>,
