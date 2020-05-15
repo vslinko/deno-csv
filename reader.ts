@@ -57,7 +57,7 @@ export async function* readCSV(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<AsyncIterableIterator<string>> {
-  const iter = _readCSV(reader, options);
+  const iter = readCSVStream(reader, options);
   let ended = false;
 
   const onRequested = async () => {
@@ -86,9 +86,9 @@ export async function* readCSVRows(
   }
 }
 
-const newLine = Symbol.for("newLine");
+export const newLine = Symbol.for("newLine");
 
-async function* _readCSV(
+export async function* readCSVStream(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<string | symbol> {
