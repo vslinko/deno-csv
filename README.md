@@ -107,8 +107,8 @@ import { CSVWriter } from "https://deno.land/x/csv/mod.ts";
 const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
 
 const writer = new CSVWriter(f, {
-  columnSeparator: new TextEncoder().encode("\t"),
-  lineSeparator: new TextEncoder().encode("\r\n"),
+  columnSeparator: "\t",
+  lineSeparator: "\r\n",
 });
 
 await writer.writeCell("a");
