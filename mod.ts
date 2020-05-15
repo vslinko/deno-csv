@@ -194,12 +194,9 @@ export async function* readCSV(
         !hasNext(lineSeparator) &&
         !hasNext(columnSeparator)
       ) {
+        const char = String.fromCharCode(inputBuffer[inputBufferIndex]);
         throw new Error(
-          `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${
-            String.fromCharCode(
-              inputBuffer[inputBufferIndex],
-            )
-          }`,
+          `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${char}`,
         );
       }
       continue;
