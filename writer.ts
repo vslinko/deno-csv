@@ -13,6 +13,10 @@ export interface CSVWriterOptions {
   quote: Uint8Array;
 }
 
+export interface CSVWriteCellOptions {
+  forceQuotes: boolean;
+}
+
 const defaultCSVWriterOptions = {
   columnSeparator: new Uint8Array([44]), // ,
   lineSeparator: new Uint8Array([10]), // \n
@@ -27,7 +31,7 @@ export class CSVWriter {
   private quote: Uint8Array;
   private firstColumn: boolean;
 
-  constructor(writer: Deno.Writer, options?: CSVWriterOptions) {
+  constructor(writer: Deno.Writer, options?: Partial<CSVWriterOptions>) {
     this.writer = writer;
     this.encoder = new TextEncoder();
     this.columnSeparator = (options && options.columnSeparator) ||
@@ -39,33 +43,13 @@ export class CSVWriter {
   }
 
   public async writeCell(
-    str: string,
-    options?: { forceQuotes?: boolean },
-  ): Promise<void>;
-  public async writeCell(
-    str: Uint8Array,
-    options?: { forceQuotes?: boolean },
-  ): Promise<void>;
-  public async writeCell(str: AsyncIterable<Uint8Array>): Promise<void>;
-  public async writeCell(
     str: string | Uint8Array | AsyncIterable<Uint8Array>,
-    options?: { forceQuotes?: boolean },
-  ): Promise<void>;
-  public async writeCell(
-    str: string | Uint8Array | AsyncIterable<Uint8Array>,
-    options?: { forceQuotes?: boolean },
+    options?: Partial<CSVWriteCellOptions>,
   ): Promise<void> {
     if (isAsyncIterable(str)) {
       return this._writeCellAsyncIterable(str, { wrap: true });
     }
 
-    return this._writeCell(str, options);
-  }
-
-  private async _writeCell(
-    str: string | Uint8Array,
-    options?: { forceQuotes?: boolean },
-  ): Promise<void> {
     const arr = str instanceof Uint8Array ? str : this.encoder.encode(str);
     const wrap = options?.forceQuotes ||
       findIndex(arr, this.quote) >= 0 ||
@@ -151,8 +135,9 @@ export async function writeCSV(
   iter: SyncAsyncIterable<
     SyncAsyncIterable<string | Uint8Array | AsyncIterable<Uint8Array>>
   >,
+  options?: Partial<CSVWriterOptions & CSVWriteCellOptions>,
 ) {
-  const csv = new CSVWriter(writer);
+  const csv = new CSVWriter(writer, options);
 
   let firstLine = true;
 
@@ -164,7 +149,7 @@ export async function writeCSV(
     }
 
     for await (const cell of makeAsyncIterable(row)) {
-      await csv.writeCell(cell);
+      await csv.writeCell(cell, options);
     }
   }
 }
@@ -173,6 +158,7 @@ export async function writeCSVObjects(
   writer: Deno.Writer,
   headers: string[],
   iter: SyncAsyncIterable<{ [key: string]: string }>,
+  options?: Partial<CSVWriterOptions & CSVWriteCellOptions>,
 ) {
   const row = function* (obj: { [key: string]: string }) {
     for (const key of headers) {
@@ -188,5 +174,5 @@ export async function writeCSVObjects(
     }
   };
 
-  await writeCSV(writer, rows());
+  await writeCSV(writer, rows(), options);
 }
