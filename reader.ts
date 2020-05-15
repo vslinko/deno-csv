@@ -29,20 +29,47 @@ const defaultCSVReaderOptions = {
   },
 };
 
+class Row implements AsyncIterableIterator<string> {
+  private onRequested: () => Promise<IteratorResult<string | symbol>>;
+
+  constructor(onRequested: () => Promise<IteratorResult<string | symbol>>) {
+    this.onRequested = onRequested;
+  }
+
+  async next(): Promise<IteratorResult<string, any>> {
+    const { done, value } = await this.onRequested();
+
+    if (done) {
+      return { done: true, value: null };
+    } else if (value === newLine) {
+      return { done: true, value: null };
+    } else {
+      return { done: false, value: value as string };
+    }
+  }
+
+  [Symbol.asyncIterator]() {
+    return this;
+  }
+}
+
 export async function* readCSV(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<AsyncIterableIterator<string>> {
-  const rowIter = async function* (
-    row: string[],
-  ): AsyncIterableIterator<string> {
-    for (const cell of row) {
-      yield cell;
+  const iter = _readCSV(reader, options);
+  let ended = false;
+
+  const onRequested = async () => {
+    const { done, value } = await iter.next();
+    if (done) {
+      ended = true;
     }
+    return { done, value };
   };
 
-  for await (const row of _readCSV(reader, options)) {
-    yield rowIter(row);
+  while (!ended) {
+    yield new Row(onRequested);
   }
 }
 
@@ -50,15 +77,21 @@ export async function* readCSVRows(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<string[]> {
-  for await (const row of _readCSV(reader, options)) {
+  for await (const rowIter of readCSV(reader, options)) {
+    const row: string[] = [];
+    for await (const cell of rowIter) {
+      row.push(cell);
+    }
     yield row;
   }
 }
 
+const newLine = Symbol.for("newLine");
+
 async function* _readCSV(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
-): AsyncIterableIterator<string[]> {
+): AsyncIterableIterator<string | symbol> {
   const mergedOptions = {
     ...defaultCSVReaderOptions,
     ...options,
@@ -94,8 +127,6 @@ async function* _readCSV(
   let inputBuffer = new Uint8Array();
   let inputBufferIndex = 0;
 
-  let row: string[] = [];
-
   let columnBuffer = new Uint8Array(columnBufferStepSize);
   let columnBufferIndex = 0;
 
@@ -104,10 +135,11 @@ async function* _readCSV(
   let inQuote = false;
   let inColumn = false;
 
-  const appendColumn = () => {
-    row.push(decoder.decode(columnBuffer.subarray(0, columnBufferIndex)));
+  const getAndResetColumn = () => {
+    const result = decoder.decode(columnBuffer.subarray(0, columnBufferIndex));
     columnBuffer = new Uint8Array(columnBufferStepSize);
     columnBufferIndex = 0;
+    return result;
   };
   const hasNext = (chars: Uint8Array) => {
     return hasPrefixFrom(inputBuffer, chars, inputBufferIndex);
@@ -157,8 +189,7 @@ async function* _readCSV(
     if (!inColumn && inputBufferUnprocessed() === 0) {
       debug("eof");
       if (!emptyLine) {
-        appendColumn();
-        yield row;
+        yield getAndResetColumn();
       }
       return;
     }
@@ -166,9 +197,8 @@ async function* _readCSV(
     if (!inColumn && hasNext(lineSeparator)) {
       debug("lineSeparator");
       if (!emptyLine) {
-        appendColumn();
-        yield row;
-        row = [];
+        yield getAndResetColumn();
+        yield newLine;
       }
       skip(lineSeparator);
       emptyLine = true;
@@ -177,7 +207,7 @@ async function* _readCSV(
 
     if (!inColumn && hasNext(columnSeparator)) {
       debug("columnSeparator");
-      appendColumn();
+      yield getAndResetColumn();
       skip(columnSeparator);
       continue;
     }
