@@ -1,8 +1,5 @@
-import {
-  assertEquals,
-  assertThrowsAsync,
-} from "https://deno.land/std/testing/asserts.ts";
-import { readCSV, readCSVObjects } from "./mod.ts";
+import { assertEquals, assertThrowsAsync } from "./dev_deps.ts";
+import { readCSV, readCSVObjects } from "./reader.ts";
 
 async function createReader(content: string): Promise<Deno.Reader> {
   const buf = new Deno.Buffer();

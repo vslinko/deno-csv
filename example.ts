@@ -1,4 +1,4 @@
-import * as log from "https://deno.land/std/log/mod.ts";
+import { log } from "./dev_deps.ts";
 import { readCSVObjects } from "./mod.ts";
 
 await log.setup({
