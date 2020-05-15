@@ -5,6 +5,9 @@ export interface CSVReaderOptions {
   columnSeparator: string | Uint8Array;
   lineSeparator: string | Uint8Array;
   quote: string | Uint8Array;
+}
+
+interface HiddenCSVReaderOptions extends CSVReaderOptions {
   _readerIteratorBufferSize: number;
   _columnBufferMinStepSize: number;
   _inputBufferIndexLimit: number;
@@ -15,7 +18,7 @@ export interface CSVReaderOptions {
   };
 }
 
-const defaultCSVReaderOptions = {
+const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
   columnSeparator: ",",
   lineSeparator: "\n",
   quote: '"',
@@ -92,7 +95,7 @@ export async function* readCSVStream(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<string | symbol> {
-  const mergedOptions = {
+  const mergedOptions: HiddenCSVReaderOptions = {
     ...defaultCSVReaderOptions,
     ...options,
   };

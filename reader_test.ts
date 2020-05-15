@@ -148,12 +148,15 @@ Deno.test({
     );
 
     const rows = await asyncArrayFrom2(
-      readCSV(reader, {
-        _readerIteratorBufferSize: 1,
-        _columnBufferMinStepSize: 1,
-        _inputBufferIndexLimit: 1,
-        _stats: stats,
-      }),
+      readCSV(
+        reader,
+        {
+          _readerIteratorBufferSize: 1,
+          _columnBufferMinStepSize: 1,
+          _inputBufferIndexLimit: 1,
+          _stats: stats,
+        } as any,
+      ),
     );
 
     assertEquals(rows, [
