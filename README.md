@@ -1,6 +1,10 @@
 # deno-csv
 
-Streaming API for reading and writing CSV for https://deno.land/.
+> Streaming API for reading and writing CSV for https://deno.land/.
+
+[![tag](https://img.shields.io/github/tag/vslinko/deno-csv.svg)](https://github.com/vslinko/deno-csv)
+[![Build Status](https://github.com/vslinko/deno-csv/workflows/ci/badge.svg?branch=master)](https://github.com/vslinko/deno-csv/actions)
+[![license](https://img.shields.io/github/license/vslinko/deno-csv.svg)](https://github.com/vslinko/deno-csv)
 
 # Usage
 
