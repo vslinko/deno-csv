@@ -1,10 +1,10 @@
 import { repeat, concat } from "./deps.ts";
-import { hasPrefixFrom, debug } from "./utils.ts";
+import { hasPrefixFrom, debug, getUint8Array } from "./utils.ts";
 
 export interface CSVReaderOptions {
-  columnSeparator: Uint8Array;
-  lineSeparator: Uint8Array;
-  quote: Uint8Array;
+  columnSeparator: string | Uint8Array;
+  lineSeparator: string | Uint8Array;
+  quote: string | Uint8Array;
   _readerIteratorBufferSize: number;
   _columnBufferMinStepSize: number;
   _inputBufferIndexLimit: number;
@@ -16,9 +16,9 @@ export interface CSVReaderOptions {
 }
 
 const defaultCSVReaderOptions = {
-  columnSeparator: new Uint8Array([44]), // ,
-  lineSeparator: new Uint8Array([10]), // \n
-  quote: new Uint8Array([34]), // "
+  columnSeparator: ",",
+  lineSeparator: "\n",
+  quote: '"',
   _readerIteratorBufferSize: 1024,
   _columnBufferMinStepSize: 1024,
   _inputBufferIndexLimit: 1024,
@@ -32,19 +32,46 @@ const defaultCSVReaderOptions = {
 export async function* readCSV(
   reader: Deno.Reader,
   options?: Partial<CSVReaderOptions>,
+): AsyncIterableIterator<AsyncIterableIterator<string>> {
+  const rowIter = async function* (
+    row: string[],
+  ): AsyncIterableIterator<string> {
+    for (const cell of row) {
+      yield cell;
+    }
+  };
+
+  for await (const row of _readCSV(reader, options)) {
+    yield rowIter(row);
+  }
+}
+
+export async function* readCSVRows(
+  reader: Deno.Reader,
+  options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<string[]> {
+  for await (const row of _readCSV(reader, options)) {
+    yield row;
+  }
+}
+
+async function* _readCSV(
+  reader: Deno.Reader,
+  options?: Partial<CSVReaderOptions>,
+): AsyncIterableIterator<string[]> {
+  const mergedOptions = {
+    ...defaultCSVReaderOptions,
+    ...options,
+  };
   const {
-    columnSeparator,
-    lineSeparator,
-    quote,
     _readerIteratorBufferSize,
     _columnBufferMinStepSize,
     _inputBufferIndexLimit,
     _stats,
-  } = {
-    ...defaultCSVReaderOptions,
-    ...options,
-  };
+  } = mergedOptions;
+  const quote = getUint8Array(mergedOptions.quote);
+  const columnSeparator = getUint8Array(mergedOptions.columnSeparator);
+  const lineSeparator = getUint8Array(mergedOptions.lineSeparator);
   const doubleQuote = repeat(quote, 2);
 
   const decoder = new TextDecoder();
@@ -222,11 +249,11 @@ export async function* readCSV(
 
 export async function* readCSVObjects(
   reader: Deno.Reader,
-  options: CSVReaderOptions = defaultCSVReaderOptions,
+  options?: Partial<CSVReaderOptions>,
 ): AsyncIterableIterator<{ [key: string]: string }> {
   let header: string[] | undefined;
 
-  for await (const row of readCSV(reader, options)) {
+  for await (const row of readCSVRows(reader, options)) {
     if (!header) {
       header = row;
       continue;

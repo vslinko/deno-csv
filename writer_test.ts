@@ -95,7 +95,7 @@ Deno.test({
       yield { a: "4", b: "5", c: "6" };
     };
 
-    await writeCSVObjects(buf, ["a", "b", "c"], asyncRows());
+    await writeCSVObjects(buf, asyncRows(), { header: ["a", "b", "c"] });
 
     assertEquals(new TextDecoder().decode(buf.bytes()), `a,b,c\n1,2,3\n4,5,6`);
   },

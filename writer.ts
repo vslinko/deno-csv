@@ -5,12 +5,13 @@ import {
   dummyAsyncIterable,
   makeAsyncIterable,
   SyncAsyncIterable,
+  getUint8Array,
 } from "./utils.ts";
 
 export interface CSVWriterOptions {
-  columnSeparator: Uint8Array;
-  lineSeparator: Uint8Array;
-  quote: Uint8Array;
+  columnSeparator: string | Uint8Array;
+  lineSeparator: string | Uint8Array;
+  quote: string | Uint8Array;
 }
 
 export interface CSVWriteCellOptions {
@@ -18,14 +19,13 @@ export interface CSVWriteCellOptions {
 }
 
 const defaultCSVWriterOptions = {
-  columnSeparator: new Uint8Array([44]), // ,
-  lineSeparator: new Uint8Array([10]), // \n
-  quote: new Uint8Array([34]), // "
+  columnSeparator: ",",
+  lineSeparator: "\n",
+  quote: '"',
 };
 
 export class CSVWriter {
   private writer: Deno.Writer;
-  private encoder: TextEncoder;
   private columnSeparator: Uint8Array;
   private lineSeparator: Uint8Array;
   private quote: Uint8Array;
@@ -33,12 +33,17 @@ export class CSVWriter {
 
   constructor(writer: Deno.Writer, options?: Partial<CSVWriterOptions>) {
     this.writer = writer;
-    this.encoder = new TextEncoder();
-    this.columnSeparator = (options && options.columnSeparator) ||
-      defaultCSVWriterOptions.columnSeparator;
-    this.lineSeparator = (options && options.lineSeparator) ||
-      defaultCSVWriterOptions.lineSeparator;
-    this.quote = (options && options.quote) || defaultCSVWriterOptions.quote;
+    this.columnSeparator = getUint8Array(
+      (options && options.columnSeparator) ||
+        defaultCSVWriterOptions.columnSeparator,
+    );
+    this.lineSeparator = getUint8Array(
+      (options && options.lineSeparator) ||
+        defaultCSVWriterOptions.lineSeparator,
+    );
+    this.quote = getUint8Array(
+      (options && options.quote) || defaultCSVWriterOptions.quote,
+    );
     this.firstColumn = true;
   }
 
@@ -50,7 +55,7 @@ export class CSVWriter {
       return this._writeCellAsyncIterable(str, { wrap: true });
     }
 
-    const arr = str instanceof Uint8Array ? str : this.encoder.encode(str);
+    const arr = getUint8Array(str);
     const wrap = options?.forceQuotes ||
       findIndex(arr, this.quote) >= 0 ||
       findIndex(arr, this.columnSeparator) >= 0 ||
@@ -156,18 +161,21 @@ export async function writeCSV(
 
 export async function writeCSVObjects(
   writer: Deno.Writer,
-  headers: string[],
   iter: SyncAsyncIterable<{ [key: string]: string }>,
-  options?: Partial<CSVWriterOptions & CSVWriteCellOptions>,
+  options: Partial<CSVWriterOptions & CSVWriteCellOptions> & {
+    header: string[];
+  },
 ) {
+  const { header } = options;
+
   const row = function* (obj: { [key: string]: string }) {
-    for (const key of headers) {
+    for (const key of header) {
       yield obj[key];
     }
   };
 
   const rows = async function* () {
-    yield headers;
+    yield header;
 
     for await (const obj of makeAsyncIterable(iter)) {
       yield row(obj);

@@ -18,7 +18,10 @@ import { readCSV } from "https://deno.land/x/csv/mod.ts";
 const f = await Deno.open("./example.csv");
 
 for await (const row of readCSV(f)) {
-  console.log(`line: ${row.join(' ')}`);
+  console.log('row:')
+  for await (const cell of row) {
+    console.log(`  cell: ${cell}`);
+  }
 }
 
 f.close();
@@ -32,13 +35,16 @@ import { readCSV } from "https://deno.land/x/csv/mod.ts";
 const f = await Deno.open("./example.csv");
 
 const options = {
-  columnSeparator: new TextEncoder().encode(';'),
-  lineSeparator: new TextEncoder().encode('\r\n'),
-  quote: new TextEncoder().encode('$'),
+  columnSeparator: ";",
+  lineSeparator: "\r\n",
+  quote: "$",
 };
 
 for await (const row of readCSV(f, options)) {
-  console.log(`line: ${row.join(' ')}`);
+  console.log('row:')
+  for await (const cell of row) {
+    console.log(`  cell: ${cell}`);
+  }
 }
 
 f.close();
@@ -88,7 +94,7 @@ const asyncObjectsGenerator = async function*() {
   yield { a: "4", b: "5", c: "6" };
 }
 
-await writeCSVObjects(f, header, asyncObjectsGenerator());
+await writeCSVObjects(f, asyncObjectsGenerator(), { header });
 
 f.close();
 ```

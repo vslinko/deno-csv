@@ -1,5 +1,6 @@
 import { assertEquals, assertThrowsAsync } from "./dev_deps.ts";
 import { readCSV, readCSVObjects } from "./reader.ts";
+import { asyncArrayFrom, asyncArrayFrom2 } from "./utils.ts";
 
 async function createReader(content: string): Promise<Deno.Reader> {
   const buf = new Deno.Buffer();
@@ -8,16 +9,6 @@ async function createReader(content: string): Promise<Deno.Reader> {
   await buf.write(enc.encode(content));
 
   return buf;
-}
-
-async function asyncArrayFrom<T>(
-  iter: AsyncIterableIterator<T>,
-): Promise<Array<T>> {
-  const arr: T[] = [];
-  for await (const row of iter) {
-    arr.push(row);
-  }
-  return arr;
 }
 
 Deno.test({
@@ -38,7 +29,7 @@ Deno.test({
     const reader = await createReader(`1,2,3
 a,b,c`);
 
-    const rows = await asyncArrayFrom(readCSV(reader));
+    const rows = await asyncArrayFrom2(readCSV(reader));
 
     assertEquals(rows, [
       ["1", "2", "3"],
@@ -54,7 +45,7 @@ Deno.test({
 
 a,b,c`);
 
-    const rows = await asyncArrayFrom(readCSV(reader));
+    const rows = await asyncArrayFrom2(readCSV(reader));
 
     assertEquals(rows, [
       ["1", "2", "3"],
@@ -69,7 +60,7 @@ Deno.test({
     const reader = await createReader(`😀,2,3
 a,😀,c`);
 
-    const rows = await asyncArrayFrom(readCSV(reader));
+    const rows = await asyncArrayFrom2(readCSV(reader));
 
     assertEquals(rows, [
       ["😀", "2", "3"],
@@ -85,11 +76,31 @@ Deno.test({
 a,"b
 ""1",c`);
 
-    const rows = await asyncArrayFrom(readCSV(reader));
+    const rows = await asyncArrayFrom2(readCSV(reader));
 
     assertEquals(rows, [
       ["1", "2", "3"],
       ["a", 'b\n"1', "c"],
+    ]);
+  },
+});
+
+Deno.test({
+  name: "readCSV parses file with custom separators",
+  async fn() {
+    const reader = await createReader(`a\tb\tc\r\n1\t2\t$$$3$`);
+
+    const rows = await asyncArrayFrom2(
+      readCSV(reader, {
+        quote: "$",
+        lineSeparator: new TextEncoder().encode("\r\n"),
+        columnSeparator: "\t",
+      }),
+    );
+
+    assertEquals(rows, [
+      ["a", "b", "c"],
+      ["1", "2", "$3"],
     ]);
   },
 });
@@ -101,7 +112,7 @@ Deno.test({
 
     assertThrowsAsync(
       async () => {
-        await asyncArrayFrom(readCSV(reader));
+        await asyncArrayFrom2(readCSV(reader));
       },
       Error,
       "Expected quote, received EOF",
@@ -116,7 +127,7 @@ Deno.test({
 
     assertThrowsAsync(
       async () => {
-        await asyncArrayFrom(readCSV(reader));
+        await asyncArrayFrom2(readCSV(reader));
       },
       Error,
       "Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received 3",
@@ -136,7 +147,7 @@ Deno.test({
       `aaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbb\n11111111111111111111,22222222222222222222`,
     );
 
-    const rows = await asyncArrayFrom(
+    const rows = await asyncArrayFrom2(
       readCSV(reader, {
         _readerIteratorBufferSize: 1,
         _columnBufferMinStepSize: 1,
