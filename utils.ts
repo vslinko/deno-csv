@@ -57,7 +57,9 @@ export async function asyncArrayFrom<T>(
   return arr;
 }
 
-export async function asyncArrayFrom2<T>(iter: AsyncIterableIterator<AsyncIterableIterator<T>>): Promise<T[][]> {
+export async function asyncArrayFrom2<T>(
+  iter: AsyncIterableIterator<AsyncIterableIterator<T>>,
+): Promise<T[][]> {
   const arr: T[][] = [];
   for await (const rowIter of iter) {
     const row: T[] = [];
