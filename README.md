@@ -1,10 +1,12 @@
 # deno-csv
 
-CSV reader for https://deno.land/.
+Streaming API for reading and writing CSV for https://deno.land/.
 
 # Usage
 
-## Reading CSV file
+## Reading
+
+### Read CSV file
 
 ```ts
 import { readCSV } from "https://deno.land/x/csv/mod.ts";
@@ -18,7 +20,7 @@ for await (const row of readCSV(f)) {
 f.close();
 ```
 
-## Reading CSV file with custom separators
+### Read CSV file with custom separators
 
 ```ts
 import { readCSV } from "https://deno.land/x/csv/mod.ts";
@@ -38,7 +40,7 @@ for await (const row of readCSV(f, options)) {
 f.close();
 ```
 
-## Reading objects from CSV file with header row
+### Read objects from CSV file with header row
 
 ```ts
 import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
@@ -48,6 +50,64 @@ const f = await Deno.open("./example.csv");
 for await (const obj of readCSVObjects(f)) {
   console.log(obj);
 }
+
+f.close();
+```
+
+## Writing
+
+### Write CSV file
+
+```ts
+import { writeCSV } from "https://deno.land/x/csv/mod.ts";
+
+const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+const rows = [
+  ["a", "b", "c"],
+  ["1", "2", "3"],
+];
+
+await writeCSV(f, rows);
+
+f.close();
+```
+
+### Write objects asynchronously to CSV file
+
+```ts
+import { writeCSVObjects } from "https://deno.land/x/csv/mod.ts";
+
+const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+const header = ["a", "b", "c"];
+const asyncObjectsGenerator = async function*() {
+  yield { a: "1", b: "2", c: "3" };
+  yield { a: "4", b: "5", c: "6" };
+}
+
+await writeCSVObjects(f, header, asyncObjectsGenerator());
+
+f.close();
+```
+
+### Write CSV file manually
+
+```ts
+import { CSVWriter } from "https://deno.land/x/csv/mod.ts";
+
+const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+
+const writer = new CSVWriter(f, {
+  columnSeparator: new TextEncoder().encode("\t"),
+  lineSeparator: new TextEncoder().encode("\r\n"),
+});
+
+await writer.writeCell("a");
+await writer.writeCell("b");
+await writer.writeCell("c");
+await writer.nextLine();
+await writer.writeCell("1");
+await writer.writeCell("2");
+await writer.writeCell("3");
 
 f.close();
 ```
