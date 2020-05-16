@@ -170,3 +170,17 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "readCSV read rows correctly even when rowsIterator not readed",
+  async fn() {
+    const reader = await createReader(`a,b\n1,2\n3,4`);
+
+    let n = 0;
+    for await (const row of readCSV(reader)) {
+      n++;
+    }
+
+    assertEquals(n, 3);
+  },
+});

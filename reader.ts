@@ -35,17 +35,32 @@ const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
 
 class Row implements AsyncIterableIterator<string> {
   private onRequested: () => Promise<IteratorResult<string | symbol>>;
+  private done: boolean;
 
   constructor(onRequested: () => Promise<IteratorResult<string | symbol>>) {
     this.onRequested = onRequested;
+    this.done = false;
+  }
+
+  async readTillEnd() {
+    if (this.done) {
+      return;
+    }
+
+    for await (const _ of this) {
+      // just read all cells
+    }
   }
 
   async next(): Promise<IteratorResult<string, any>> {
+    if (this.done) {
+      return { done: true, value: null };
+    }
+
     const { done, value } = await this.onRequested();
 
-    if (done) {
-      return { done: true, value: null };
-    } else if (value === newLine) {
+    if (done || value === newLine) {
+      this.done = true;
       return { done: true, value: null };
     } else {
       return { done: false, value: value as string };
@@ -82,7 +97,9 @@ export async function* readCSV(
   };
 
   while (!ended) {
-    yield new Row(onRequested);
+    const row = new Row(onRequested);
+    yield row;
+    await row.readTillEnd();
   }
 }
 
