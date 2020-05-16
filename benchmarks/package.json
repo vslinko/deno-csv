@@ -1,0 +1,8 @@
+{
+  "name": "benchmarks",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "csv-parse": "^4.9.1"
+  }
+}
