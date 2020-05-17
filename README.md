@@ -7,11 +7,11 @@
 [![license](https://img.shields.io/github/license/vslinko/deno-csv.svg)](https://github.com/vslinko/deno-csv)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/csv/mod.ts)
 
-# Usage
+## Usage
 
-## Reading
+### Reading
 
-### Read CSV file
+#### Read CSV file
 
 ```ts
 import { readCSV } from "https://deno.land/x/csv/mod.ts";
@@ -28,7 +28,7 @@ for await (const row of readCSV(f)) {
 f.close();
 ```
 
-### Read CSV file with custom separators
+#### Read CSV file with custom separators
 
 ```ts
 import { readCSV } from "https://deno.land/x/csv/mod.ts";
@@ -51,7 +51,7 @@ for await (const row of readCSV(f, options)) {
 f.close();
 ```
 
-### Read objects from CSV file with header row
+#### Read objects from CSV file with header row
 
 ```ts
 import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
@@ -65,9 +65,38 @@ for await (const obj of readCSVObjects(f)) {
 f.close();
 ```
 
-## Writing
+#### Read CSV file manually
 
-### Write CSV file
+```ts
+import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
+
+const f = await Deno.open("./example.csv");
+
+let row: string[] = [];
+const reader = new CSVReader(f, {
+  columnSeparator: "\t",
+  lineSeparator: "\r\n",
+  onCell(cell: string) {
+    row.push(cell);
+  },
+  onRowEnd() {
+    console.log(row);
+    row = [];
+  },
+  onEnd() {
+    console.log('end');
+    f.close();
+  },
+  onError(err) {
+    console.error(err);
+  }
+});
+reader.read();
+```
+
+### Writing
+
+#### Write CSV file
 
 ```ts
 import { writeCSV } from "https://deno.land/x/csv/mod.ts";
@@ -83,7 +112,7 @@ await writeCSV(f, rows);
 f.close();
 ```
 
-### Write objects asynchronously to CSV file
+#### Write objects asynchronously to CSV file
 
 ```ts
 import { writeCSVObjects } from "https://deno.land/x/csv/mod.ts";
@@ -100,7 +129,7 @@ await writeCSVObjects(f, asyncObjectsGenerator(), { header });
 f.close();
 ```
 
-### Write CSV file manually
+#### Write CSV file manually
 
 ```ts
 import { CSVWriter } from "https://deno.land/x/csv/mod.ts";
@@ -121,4 +150,19 @@ await writer.writeCell("2");
 await writer.writeCell("3");
 
 f.close();
+```
+
+## Benchmarks
+
+```
+test-node-csv-parse
+Read 500001 lines for 8.937 seconds
+test-deno-csv-CSVReader
+Read 500001 lines for 8.986 seconds
+test-deno-csv-readCSVRows
+Read 500001 lines for 9.425 seconds
+test-deno-csv-readCSVStream
+Read 500001 lines for 13.657 seconds
+test-deno-csv-readCSV
+Read 500001 lines for 15.814 seconds
 ```

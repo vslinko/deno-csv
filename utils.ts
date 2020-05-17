@@ -1,4 +1,4 @@
-import { hasPrefix, getLogger } from "./deps.ts";
+import { getLogger } from "./deps.ts";
 
 const enc = new TextEncoder();
 
@@ -11,12 +11,15 @@ export function hasPrefixFrom(
   prefix: Uint8Array,
   offset: number,
 ) {
-  return hasPrefix(offset > 0 ? a.subarray(offset) : a, prefix);
+  for (let i = 0, max = prefix.length; i < max; i++) {
+    if (a[i + offset] !== prefix[i]) return false;
+  }
+  return true;
 }
 
 export async function* dummyAsyncIterable(
   str: Uint8Array,
-): AsyncIterableIterator<Uint8Array> {
+): AsyncIterable<Uint8Array> {
   yield str;
 }
 
@@ -28,7 +31,7 @@ export type SyncAsyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 
 export async function* makeAsyncIterable<T>(
   iter: SyncAsyncIterable<T>,
-): AsyncIterableIterator<T> {
+): AsyncIterable<T> {
   const i = isAsyncIterable(iter)
     ? iter[Symbol.asyncIterator]()
     : iter[Symbol.iterator]();
@@ -48,7 +51,7 @@ export function debug(msg: string) {
 }
 
 export async function asyncArrayFrom<T>(
-  iter: AsyncIterableIterator<T>,
+  iter: AsyncIterable<T>,
 ): Promise<Array<T>> {
   const arr: T[] = [];
   for await (const row of iter) {
@@ -58,7 +61,7 @@ export async function asyncArrayFrom<T>(
 }
 
 export async function asyncArrayFrom2<T>(
-  iter: AsyncIterableIterator<AsyncIterableIterator<T>>,
+  iter: AsyncIterable<AsyncIterable<T>>,
 ): Promise<T[][]> {
   const arr: T[][] = [];
   for await (const rowIter of iter) {

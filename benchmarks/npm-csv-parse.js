@@ -11,10 +11,6 @@ const csvParser = csvParse();
 
 let lines = 0;
 
-if (calculateHash) {
-  console.log('Calculating hash');
-}
-
 csvParser.on("readable", function () {
   let row;
   while ((row = csvParser.read())) {
@@ -36,9 +32,12 @@ csvParser.on("readable", function () {
 
 csvParser.on("end", function () {
   const diff = process.hrtime(start);
-  console.log(`Read ${lines} lines for ${diff[0]}.${diff[1]} seconds`);
   if (calculateHash) {
     console.log(`Result hash: ${hash.digest("hex")}`);
+  } else {
+    console.log(
+      `Read ${lines} lines for ${diff[0]}.${Math.round(diff[1] / 1e6)} seconds`,
+    );
   }
 });
 
