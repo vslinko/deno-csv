@@ -20,6 +20,7 @@ interface HiddenCSVReaderOptions extends CSVReaderOptions {
   _readerIteratorBufferSize: number;
   _columnBufferMinStepSize: number;
   _inputBufferIndexLimit: number;
+  _columnBufferReserve: number;
   _stats: {
     reads: number;
     inputBufferShrinks: number;
@@ -40,6 +41,7 @@ const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
   _readerIteratorBufferSize: 1024 * 1024,
   _columnBufferMinStepSize: 1024,
   _inputBufferIndexLimit: 1024,
+  _columnBufferReserve: 64,
   _stats: {
     reads: 0,
     inputBufferShrinks: 0,
@@ -88,6 +90,7 @@ export class CSVReader {
   private quote: Uint8Array;
   private doubleQuote: Uint8Array;
   private minPossibleBufferReserve: number;
+  private columnBufferReserve: number;
   private columnBufferStepSize: number;
   private readerIterator: AsyncIterableIterator<Uint8Array>;
   private inputBuffer: Uint8Array;
@@ -129,6 +132,10 @@ export class CSVReader {
     );
     this.columnBufferStepSize = Math.max(
       this._columnBufferMinStepSize,
+      this.minPossibleBufferReserve,
+    );
+    this.columnBufferReserve = Math.max(
+      mergedOptions._columnBufferReserve,
       this.minPossibleBufferReserve,
     );
 
@@ -259,7 +266,7 @@ export class CSVReader {
       // column buffer is almost full
       if (
         this.columnBuffer.length - this.columnBufferIndex <
-          this.minPossibleBufferReserve
+          this.columnBufferReserve
       ) {
         this.expandColumnBuffer();
         continue;
@@ -351,7 +358,10 @@ export class CSVReader {
 
       if (this.inColumn && this.inputBufferUnprocessed > 0) {
         const slice = this.inputBuffer.subarray(this.inputBufferIndex);
-        const limit = slice.length - this.minPossibleBufferReserve;
+        const limit = Math.min(
+          slice.length - this.minPossibleBufferReserve,
+          this.columnBuffer.length - this.columnBufferIndex,
+        );
         const readTillIndex = limit <= 1
           ? 1
           : this.inQuote

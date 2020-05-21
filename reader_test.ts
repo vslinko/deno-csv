@@ -179,6 +179,7 @@ Deno.test({
           _readerIteratorBufferSize: 1,
           _columnBufferMinStepSize: 1,
           _inputBufferIndexLimit: 1,
+          _columnBufferReserve: 1,
           _stats: stats,
         } as any,
       ),
@@ -291,5 +292,19 @@ Deno.test({
 
     assertEquals(a, 2);
     assertEquals(b, 0);
+  },
+});
+
+Deno.test({
+  name: "readCSVRows should work with long cell",
+  async fn() {
+    const reader = new MyReader(`"{""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false, ""key1"": false}"`);
+
+    let count = 0;
+    for await (const row of readCSVRows(reader)) {
+      count++;
+    }
+
+    assertEquals(count, 1);
   },
 });
