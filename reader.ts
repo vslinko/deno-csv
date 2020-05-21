@@ -77,10 +77,8 @@ export class CSVReader {
   private onRowEnd: () => void;
   private onEnd: () => void;
   private onError: (err: Error) => void;
-  private _readerIteratorBufferSize: number;
-  private _columnBufferMinStepSize: number;
-  private _inputBufferIndexLimit: number;
-  private _stats: {
+  private inputBufferIndexLimit: number;
+  private stats: {
     reads: number;
     inputBufferShrinks: number;
     columnBufferExpands: number;
@@ -115,10 +113,8 @@ export class CSVReader {
     this.onRowEnd = mergedOptions.onRowEnd || noop;
     this.onEnd = mergedOptions.onEnd || noop;
     this.onError = mergedOptions.onError || noop;
-    this._readerIteratorBufferSize = mergedOptions._readerIteratorBufferSize;
-    this._columnBufferMinStepSize = mergedOptions._columnBufferMinStepSize;
-    this._inputBufferIndexLimit = mergedOptions._inputBufferIndexLimit;
-    this._stats = mergedOptions._stats;
+    this.inputBufferIndexLimit = mergedOptions._inputBufferIndexLimit;
+    this.stats = mergedOptions._stats;
     this.quote = getUint8Array(mergedOptions.quote);
     this.columnSeparator = getUint8Array(mergedOptions.columnSeparator);
     this.lineSeparator = getUint8Array(mergedOptions.lineSeparator);
@@ -131,7 +127,7 @@ export class CSVReader {
       1,
     );
     this.columnBufferStepSize = Math.max(
-      this._columnBufferMinStepSize,
+      mergedOptions._columnBufferMinStepSize,
       this.minPossibleBufferReserve,
     );
     this.columnBufferReserve = Math.max(
@@ -140,7 +136,7 @@ export class CSVReader {
     );
 
     this.readerIterator = Deno.iter(reader, {
-      bufSize: this._readerIteratorBufferSize,
+      bufSize: mergedOptions._readerIteratorBufferSize,
     });
 
     this.inputBuffer = new Uint8Array();
@@ -197,7 +193,7 @@ export class CSVReader {
   }
 
   private shrinkInputBuffer() {
-    this._stats.inputBufferShrinks++;
+    this.stats.inputBufferShrinks++;
     this.debug("shrink input buffer");
     this.inputBuffer = this.inputBuffer.slice(this.inputBufferIndex);
     this.inputBufferIndex = 0;
@@ -218,7 +214,7 @@ export class CSVReader {
   }
 
   private async readMoreData() {
-    this._stats.reads++;
+    this.stats.reads++;
     this.debug("read more data");
     const { done, value } = await this.readerIterator.next();
     if (done) {
@@ -230,7 +226,7 @@ export class CSVReader {
   }
 
   private expandColumnBuffer() {
-    this._stats.columnBufferExpands++;
+    this.stats.columnBufferExpands++;
     const newColumn = new Uint8Array(
       this.columnBuffer.length + this.columnBufferStepSize,
     );
@@ -258,7 +254,7 @@ export class CSVReader {
       }
 
       // buffer could be emptied
-      if (this.inputBufferIndex >= this._inputBufferIndexLimit) {
+      if (this.inputBufferIndex >= this.inputBufferIndexLimit) {
         this.shrinkInputBuffer();
         continue;
       }
