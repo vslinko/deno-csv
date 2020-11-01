@@ -1,11 +1,11 @@
-import { findIndex, concat } from "./deps.ts";
+import { concat, findIndex } from "./deps.ts";
 import {
+  dummyAsyncIterable,
+  getUint8Array,
   hasPrefixFrom,
   isAsyncIterable,
-  dummyAsyncIterable,
   makeAsyncIterable,
   SyncAsyncIterable,
-  getUint8Array,
 } from "./utils.ts";
 
 /** Options for CSV writer */

@@ -1,4 +1,4 @@
-import { readCSVStream, newLine } from "../mod.ts";
+import { newLine, readCSVStream } from "../mod.ts";
 import { Sha256 } from "https://deno.land/std/hash/sha256.ts";
 
 const file = await Deno.open(Deno.args[0]);

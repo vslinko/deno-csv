@@ -1,9 +1,9 @@
 import { assertEquals, assertThrowsAsync } from "./dev_deps.ts";
 import {
-  readCSVStream,
-  readCSVRows,
   readCSV,
   readCSVObjects,
+  readCSVRows,
+  readCSVStream,
 } from "./reader.ts";
 import { asyncArrayFrom, asyncArrayFrom2 } from "./utils.ts";
 
