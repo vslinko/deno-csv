@@ -1,8 +1,12 @@
-test: test-node-csv-parse test-deno-csv-CSVReader test-deno-csv-readCSVRows test-deno-csv-readCSVStream test-deno-csv-readCSV
+test: test-node-csv-parse test-deno-csv-CSVReader-wasm test-deno-csv-CSVReader test-deno-csv-readCSVRows test-deno-csv-readCSVStream test-deno-csv-readCSV
 
 test-node-csv-parse: node_modules 500000-Records.csv
 	@echo test-node-csv-parse
 	@node npm-csv-parse.js 500000-Records.csv
+
+test-deno-csv-CSVReader-wasm: 500000-Records.csv
+	@echo test-deno-csv-CSVReader-wasm
+	@deno run --allow-env --allow-read --allow-hrtime deno-csv-CSVReader-wasm.ts 500000-Records.csv
 
 test-deno-csv-CSVReader: 500000-Records.csv
 	@echo test-deno-csv-CSVReader
