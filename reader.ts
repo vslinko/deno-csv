@@ -1,4 +1,4 @@
-import { concat, getLogger, Logger, repeat } from "./deps.ts";
+import { concat, getLogger, Logger, repeat, iter } from "./deps.ts";
 import { getUint8Array, hasPrefixFrom } from "./utils.ts";
 
 /** Common options for CSV reader module */
@@ -135,7 +135,7 @@ export class CSVReader {
       this.minPossibleBufferReserve,
     );
 
-    this.readerIterator = Deno.iter(reader, {
+    this.readerIterator = iter(reader, {
       bufSize: mergedOptions._readerIteratorBufferSize,
     });
 

@@ -1,10 +1,10 @@
-import { assertEquals } from "./dev_deps.ts";
+import { assertEquals, Buffer } from "./dev_deps.ts";
 import { CSVWriter, writeCSV, writeCSVObjects } from "./writer.ts";
 
 Deno.test({
   name: "CSVWriter writes simple file",
   async fn() {
-    const buf = new Deno.Buffer();
+    const buf = new Buffer();
     const writer = new CSVWriter(buf);
 
     await writer.writeCell("a");
@@ -22,7 +22,7 @@ Deno.test({
 Deno.test({
   name: "CSVWriter detects quotes",
   async fn() {
-    const buf = new Deno.Buffer();
+    const buf = new Buffer();
     const writer = new CSVWriter(buf);
 
     await writer.writeCell("a");
@@ -43,7 +43,7 @@ Deno.test({
 Deno.test({
   name: "CSVWriter works with async iterable",
   async fn() {
-    const buf = new Deno.Buffer();
+    const buf = new Buffer();
     const writer = new CSVWriter(buf);
     const asyncCell = async function* () {
       const enc = new TextEncoder();
@@ -65,7 +65,7 @@ Deno.test({
 Deno.test({
   name: "writeCSV works with different input",
   async fn() {
-    const buf = new Deno.Buffer();
+    const buf = new Buffer();
     const enc = new TextEncoder();
     const asyncCell = async function* (str: string) {
       yield enc.encode(str);
@@ -89,7 +89,7 @@ Deno.test({
 Deno.test({
   name: "writeCSVObjects works objects",
   async fn() {
-    const buf = new Deno.Buffer();
+    const buf = new Buffer();
     const asyncRows = async function* () {
       yield { a: "1", b: "2", c: "3" };
       yield { a: "4", b: "5", c: "6" };

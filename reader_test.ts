@@ -95,7 +95,7 @@ a,😀,c`);
 });
 
 Deno.test({
-  name: "readCSV parses file with qoutes",
+  name: "readCSV parses file with quotes",
   async fn() {
     const reader = new MyReader(`1,"2",3
 a,"b
@@ -131,7 +131,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "readCSV throws when qoute is unclosed",
+  name: "readCSV throws when quote is unclosed",
   async fn() {
     const reader = new MyReader(`1,"2`);
 
@@ -146,7 +146,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "readCSV throws when qoute is not last character in column",
+  name: "readCSV throws when quote is not last character in column",
   async fn() {
     const reader = new MyReader(`1,"2"3`);
 
@@ -198,12 +198,12 @@ Deno.test({
 });
 
 Deno.test({
-  name: "readCSV read rows correctly even when rowsIterator not readed",
+  name: "readCSV read rows correctly even when rowsIterator not read",
   async fn() {
     const reader = new MyReader(`a,b\n1,2\n3,4`);
 
     let n = 0;
-    for await (const row of readCSV(reader)) {
+    for await (const _row of readCSV(reader)) {
       n++;
     }
 
@@ -218,12 +218,12 @@ Deno.test({
     const r = readCSVStream(reader);
 
     let a = 0;
-    for await (const token of r) {
+    for await (const _token of r) {
       a++;
     }
     reader.reset();
     let b = 0;
-    for await (const token of r) {
+    for await (const _token of r) {
       b++;
     }
 
@@ -239,12 +239,12 @@ Deno.test({
     const r = readCSVRows(reader);
 
     let a = 0;
-    for await (const row of r) {
+    for await (const _row of r) {
       a++;
     }
     reader.reset();
     let b = 0;
-    for await (const row of r) {
+    for await (const _row of r) {
       b++;
     }
 
@@ -260,12 +260,12 @@ Deno.test({
     const r = readCSV(reader);
 
     let a = 0;
-    for await (const row of r) {
+    for await (const _row of r) {
       a++;
     }
     reader.reset();
     let b = 0;
-    for await (const row of r) {
+    for await (const _row of r) {
       b++;
     }
 
@@ -281,12 +281,12 @@ Deno.test({
     const r = readCSVObjects(reader);
 
     let a = 0;
-    for await (const obj of r) {
+    for await (const _obj of r) {
       a++;
     }
     reader.reset();
     let b = 0;
-    for await (const obj of r) {
+    for await (const _obj of r) {
       b++;
     }
 
@@ -303,7 +303,7 @@ Deno.test({
     );
 
     let count = 0;
-    for await (const row of readCSVRows(reader)) {
+    for await (const _row of readCSVRows(reader)) {
       count++;
     }
 
