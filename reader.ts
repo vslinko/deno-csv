@@ -1,4 +1,4 @@
-import { concat, getLogger, Logger, repeat, iter } from "./deps.ts";
+import { concat, getLogger, iter, Logger, repeat } from "./deps.ts";
 import { getUint8Array, hasPrefixFrom } from "./utils.ts";
 
 /** Common options for CSV reader module */
