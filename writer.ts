@@ -1,4 +1,4 @@
-import { concat, findIndex } from "./deps.ts";
+import { concat, indexOf } from "./deps.ts";
 import {
   dummyAsyncIterable,
   getUint8Array,
@@ -69,9 +69,9 @@ export class CSVWriter {
 
     const arr = getUint8Array(str);
     const wrap = options?.forceQuotes ||
-      findIndex(arr, this.quote) >= 0 ||
-      findIndex(arr, this.columnSeparator) >= 0 ||
-      findIndex(arr, this.lineSeparator) >= 0;
+      indexOf(arr, this.quote) >= 0 ||
+      indexOf(arr, this.columnSeparator) >= 0 ||
+      indexOf(arr, this.lineSeparator) >= 0;
 
     return this._writeCellAsyncIterable(dummyAsyncIterable(arr), {
       wrap,
@@ -150,7 +150,7 @@ export class CSVWriter {
 /** Write CSV with sync or async row iterators:
  *
  *       await writeCSV(f, [["a", "b"], ["1", "2"]]);
- * 
+ *
  *       const asyncRowGenerator = async function*() {
  *         yield ["a", "b"];
  *         yield ["1", "2"];
@@ -184,7 +184,7 @@ export async function writeCSV(
 /** Write CSV with sync or async object iterators:
  *
  *       await writeCSVObjects(f, [{a: "1"}, {a: "2"}], { header: ["a"] });
- * 
+ *
  *       const asyncObjectsGenerator = async function*() {
  *         yield { a: "1", b: "2", c: "3" };
  *         yield { a: "4", b: "5", c: "6" };
