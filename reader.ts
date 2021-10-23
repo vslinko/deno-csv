@@ -102,6 +102,9 @@ export class CSVReader {
   private inputBufferUnprocessed: number;
   private paused: boolean;
   private debug: (msg: string) => void;
+  private currentPos: number;
+  private linesProcessed: number;
+  private lastLineStartPos: number;
 
   constructor(reader: Deno.Reader, options?: Partial<CSVReaderOptions>) {
     this.decoder = new TextDecoder();
@@ -152,6 +155,10 @@ export class CSVReader {
     this.inputBufferUnprocessed = 0;
     this.paused = true;
 
+    this.currentPos = 0;
+    this.linesProcessed = 0;
+    this.lastLineStartPos = 0;
+
     const logger: Logger = getLogger("csv");
     if (logger.levelName === "DEBUG") {
       this.debug = (msg) => logger.debug(msg);
@@ -188,8 +195,10 @@ export class CSVReader {
   }
 
   private skip(chars: Uint8Array) {
+    this.debug(`skip: ${chars.length}`);
     this.inputBufferIndex += chars.length;
     this.inputBufferUnprocessed -= chars.length;
+    this.currentPos += chars.length;
   }
 
   private shrinkInputBuffer() {
@@ -211,6 +220,7 @@ export class CSVReader {
     this.columnBufferIndex += n;
     this.inputBufferIndex += n;
     this.inputBufferUnprocessed -= n;
+    this.currentPos += n;
   }
 
   private async readMoreData() {
@@ -235,6 +245,25 @@ export class CSVReader {
     );
     newColumn.set(this.columnBuffer);
     this.columnBuffer = newColumn;
+  }
+
+  private countLine() {
+    this.countLines(1, this.currentPos);
+  }
+
+  private countLines(newLines: number, lastLineStartPos: number) {
+    this.debug(
+      `count lines: newLines=${newLines} lastLineStartPos=${lastLineStartPos}`,
+    );
+    this.linesProcessed += newLines;
+    this.lastLineStartPos = lastLineStartPos;
+  }
+
+  private getCurrentPos() {
+    const line = this.linesProcessed + 1;
+    const ch = this.currentPos - this.lastLineStartPos + 1;
+
+    return `line ${line}, character ${ch}`;
   }
 
   private async parseCycle() {
@@ -285,6 +314,7 @@ export class CSVReader {
           this.processRow();
         }
         this.skip(this.lineSeparator);
+        this.countLine();
         this.emptyLine = true;
         continue;
       }
@@ -332,7 +362,7 @@ export class CSVReader {
           );
           this.onError(
             new Error(
-              `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${char}`,
+              `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${char} (${this.getCurrentPos()})`,
             ),
           );
           return;
@@ -358,31 +388,56 @@ export class CSVReader {
           slice.length - this.minPossibleBufferReserve,
           this.columnBuffer.length - this.columnBufferIndex,
         );
-        const readTillIndex = limit <= 1
-          ? 1
-          : this.inQuote
-          ? findReadTillIndex(slice, limit, this.quote)
-          : findReadTillIndex3(
-            slice,
-            limit,
-            this.lineSeparator,
-            this.columnSeparator,
-            this.quote,
-          );
+
+        let readTillIndex = 1;
+        let newLines = 0;
+        let lastLineStartPos = -1;
+        if (limit > 1) {
+          if (this.inQuote) {
+            const { till, lineSeparatorsFound, lastLineSeparatorEndIndex } =
+              findReadTillIndexQuoted(
+                slice,
+                limit,
+                this.quote,
+                this.lineSeparator,
+              );
+
+            readTillIndex = till;
+            newLines = lineSeparatorsFound;
+            lastLineStartPos = this.currentPos +
+              lastLineSeparatorEndIndex;
+          } else {
+            readTillIndex = findReadTillIndex(
+              slice,
+              limit,
+              this.lineSeparator,
+              this.columnSeparator,
+              this.quote,
+            );
+          }
+        }
 
         if (readTillIndex > 0) {
           this.debug(`read char: ${readTillIndex}`);
           this.readChars(readTillIndex);
         }
+        if (newLines > 0) {
+          this.countLines(
+            newLines,
+            lastLineStartPos,
+          );
+        }
         continue;
       }
 
       if (this.inQuote && this.inputBufferUnprocessed === 0) {
-        this.onError(new Error("Expected quote, received EOF"));
+        this.onError(
+          new Error(`Expected quote, received EOF (${this.getCurrentPos()})`),
+        );
         return;
       }
 
-      this.onError(new Error("unexpected"));
+      this.onError(new Error(`unexpected (${this.getCurrentPos()})`));
       return;
     }
   }
@@ -789,47 +844,75 @@ export async function* readCSVObjects(
   }
 }
 
-function findReadTillIndex(
+function findReadTillIndexQuoted(
   a: Uint8Array,
   limit: number,
-  pat: Uint8Array,
-): number {
-  const s = pat[0];
+  quote: Uint8Array,
+  lineSeparator: Uint8Array,
+): {
+  till: number;
+  lineSeparatorsFound: number;
+  lastLineSeparatorEndIndex: number;
+} {
+  const s1 = quote[0];
+  const s2 = lineSeparator[0];
+  let result = limit;
+  let lineSeparatorsFound = 0;
+  let lastLineSeparatorEndIndex = -1;
 
   for (let i = 0; i < a.length; i++) {
     if (i >= limit) {
-      return limit;
+      result = limit;
+      break;
     }
 
-    if (a[i] === s) {
+    if (a[i] === s1) {
       let matched = 1;
       let j = i;
-      while (matched < pat.length) {
+      while (matched < quote.length) {
         j++;
-        if (a[j] !== pat[j - i]) {
+        if (a[j] !== quote[j - i]) {
           break;
         }
         matched++;
       }
-      if (matched === pat.length) {
-        return i;
+      if (matched === quote.length) {
+        result = i;
+        break;
+      }
+    }
+
+    if (a[i] === s2) {
+      let matched = 1;
+      let j = i;
+      while (matched < lineSeparator.length) {
+        j++;
+        if (a[j] !== lineSeparator[j - i]) {
+          break;
+        }
+        matched++;
+      }
+      if (matched === lineSeparator.length) {
+        lineSeparatorsFound++;
+        lastLineSeparatorEndIndex = i + lineSeparator.length;
+        i += lineSeparator.length - 1;
       }
     }
   }
 
-  return limit;
+  return { till: result, lineSeparatorsFound, lastLineSeparatorEndIndex };
 }
 
-function findReadTillIndex3(
+function findReadTillIndex(
   a: Uint8Array,
   limit: number,
-  pat1: Uint8Array,
-  pat2: Uint8Array,
-  pat3: Uint8Array,
+  lineSeparator: Uint8Array,
+  columnSeparator: Uint8Array,
+  quote: Uint8Array,
 ): number {
-  const s1 = pat1[0];
-  const s2 = pat2[0];
-  const s3 = pat3[0];
+  const s1 = lineSeparator[0];
+  const s2 = columnSeparator[0];
+  const s3 = quote[0];
 
   for (let i = 0; i < a.length; i++) {
     if (i >= limit) {
@@ -839,14 +922,14 @@ function findReadTillIndex3(
     if (a[i] === s1) {
       let matched = 1;
       let j = i;
-      while (matched < pat1.length) {
+      while (matched < lineSeparator.length) {
         j++;
-        if (a[j] !== pat1[j - i]) {
+        if (a[j] !== lineSeparator[j - i]) {
           break;
         }
         matched++;
       }
-      if (matched === pat1.length) {
+      if (matched === lineSeparator.length) {
         return i;
       }
     }
@@ -854,14 +937,14 @@ function findReadTillIndex3(
     if (a[i] === s2) {
       let matched = 1;
       let j = i;
-      while (matched < pat2.length) {
+      while (matched < columnSeparator.length) {
         j++;
-        if (a[j] !== pat2[j - i]) {
+        if (a[j] !== columnSeparator[j - i]) {
           break;
         }
         matched++;
       }
-      if (matched === pat2.length) {
+      if (matched === columnSeparator.length) {
         return i;
       }
     }
@@ -869,14 +952,14 @@ function findReadTillIndex3(
     if (a[i] === s3) {
       let matched = 1;
       let j = i;
-      while (matched < pat3.length) {
+      while (matched < quote.length) {
         j++;
-        if (a[j] !== pat3[j - i]) {
+        if (a[j] !== quote[j - i]) {
           break;
         }
         matched++;
       }
-      if (matched === pat3.length) {
+      if (matched === quote.length) {
         return i;
       }
     }

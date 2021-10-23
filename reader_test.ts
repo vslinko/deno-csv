@@ -140,7 +140,7 @@ Deno.test({
         await asyncArrayFrom2(readCSV(reader));
       },
       Error,
-      "Expected quote, received EOF",
+      "Expected quote, received EOF (line 1, character 5)",
     );
   },
 });
@@ -155,7 +155,29 @@ Deno.test({
         await asyncArrayFrom2(readCSV(reader));
       },
       Error,
-      "Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received 3",
+      "Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received 3 (line 1, character 6)",
+    );
+  },
+});
+
+Deno.test({
+  name: "readCSV calculates error position",
+  async fn() {
+    const reader = new MyReader(`1,2
+3,4
+
+5,"123",,,"123
+
+
+1"2
+1,2`);
+
+    assertThrowsAsync(
+      async () => {
+        await asyncArrayFrom2(readCSV(reader));
+      },
+      Error,
+      "Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received 2 (line 7, character 3)",
     );
   },
 });
