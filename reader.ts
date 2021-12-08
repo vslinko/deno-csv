@@ -357,14 +357,15 @@ export class CSVReader {
           !this.hasNext(this.lineSeparator) &&
           !this.hasNext(this.columnSeparator)
         ) {
-          const char = String.fromCharCode(
-            this.inputBuffer[this.inputBufferIndex],
-          );
-          this.onError(
-            new Error(
-              `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${char} (${this.getCurrentPos()})`,
-            ),
-          );
+          const charCode = this.inputBuffer[this.inputBufferIndex];
+          const char = charCode === 13 ? "\\r" : String.fromCharCode(charCode);
+          let msg =
+            `Expected EOF, COLUMN_SEPARATOR, LINE_SEPARATOR; received ${char} (${this.getCurrentPos()})`;
+          if (charCode === 13) {
+            msg +=
+              '\nPerhaps you need to add the setting lineSeparator: "\\r\\n"\nhttps://git.io/JDTDS';
+          }
+          this.onError(new Error(msg));
           return;
         }
         continue;
