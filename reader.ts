@@ -6,6 +6,7 @@ export interface CommonCSVReaderOptions {
   columnSeparator: string | Uint8Array;
   lineSeparator: string | Uint8Array;
   quote: string | Uint8Array;
+  encoding?: string;
 }
 
 /** Options for CSVReader class */
@@ -107,7 +108,7 @@ export class CSVReader {
   private lastLineStartPos: number;
 
   constructor(reader: Deno.Reader, options?: Partial<CSVReaderOptions>) {
-    this.decoder = new TextDecoder();
+    this.decoder = new TextDecoder(options?.encoding);
     const mergedOptions: HiddenCSVReaderOptions = {
       ...defaultCSVReaderOptions,
       ...options,
