@@ -1,4 +1,4 @@
-import { concat, indexOf } from "./deps.ts";
+import { concat, indexOfNeedle } from "./deps.ts";
 import {
   dummyAsyncIterable,
   getUint8Array,
@@ -69,9 +69,9 @@ export class CSVWriter {
 
     const arr = getUint8Array(str);
     const wrap = options?.forceQuotes ||
-      indexOf(arr, this.quote) >= 0 ||
-      indexOf(arr, this.columnSeparator) >= 0 ||
-      indexOf(arr, this.lineSeparator) >= 0;
+      indexOfNeedle(arr, this.quote) >= 0 ||
+      indexOfNeedle(arr, this.columnSeparator) >= 0 ||
+      indexOfNeedle(arr, this.lineSeparator) >= 0;
 
     return this._writeCellAsyncIterable(dummyAsyncIterable(arr), {
       wrap,

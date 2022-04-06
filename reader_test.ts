@@ -1,4 +1,4 @@
-import { assertEquals, assertThrowsAsync } from "./dev_deps.ts";
+import { assertEquals, assertRejects } from "./dev_deps.ts";
 import {
   readCSV,
   readCSVObjects,
@@ -135,7 +135,7 @@ Deno.test({
   async fn() {
     const reader = new MyReader(`1,"2`);
 
-    assertThrowsAsync(
+    assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -150,7 +150,7 @@ Deno.test({
   async fn() {
     const reader = new MyReader(`1,"2"3`);
 
-    assertThrowsAsync(
+    assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -172,7 +172,7 @@ Deno.test({
 1"2
 1,2`);
 
-    assertThrowsAsync(
+    assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
