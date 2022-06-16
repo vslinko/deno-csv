@@ -161,6 +161,21 @@ Deno.test({
 });
 
 Deno.test({
+  name: "readCSV throws when quote is found in unquoted field",
+  async fn() {
+    const reader = new MyReader(`1,2 "3",4`);
+
+    assertRejects(
+      async () => {
+        await asyncArrayFrom2(readCSV(reader));
+      },
+      Error,
+      "Unexpected quote in unquoted field (line 1, character 5)",
+    );
+  },
+});
+
+Deno.test({
   name: "readCSV calculates error position",
   async fn() {
     const reader = new MyReader(`1,2

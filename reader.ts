@@ -408,13 +408,24 @@ export class CSVReader {
             newLines = lineSeparatorsFound;
             lastLineStartPos = this.currentPos + lastLineSeparatorEndIndex;
           } else {
-            readTillIndex = findReadTillIndex(
+            const { till, type } = findReadTillIndex(
               slice,
               limit,
               this.lineSeparator,
               this.columnSeparator,
               this.quote,
             );
+
+            if (till === 0 && type === FindReadTillIndexType.QUOTE) {
+              this.onError(
+                new Error(
+                  `Unexpected quote in unquoted field (${this.getCurrentPos()})`,
+                ),
+              );
+              return;
+            }
+
+            readTillIndex = till;
           }
         }
 
@@ -901,20 +912,27 @@ function findReadTillIndexQuoted(
   return { till: result, lineSeparatorsFound, lastLineSeparatorEndIndex };
 }
 
+enum FindReadTillIndexType {
+  LIMIT = 0,
+  LINE_SEPARATOR = 1,
+  COLUMN_SEPARATOR = 2,
+  QUOTE = 3,
+}
+
 function findReadTillIndex(
   a: Uint8Array,
   limit: number,
   lineSeparator: Uint8Array,
   columnSeparator: Uint8Array,
   quote: Uint8Array,
-): number {
+): { till: number; type: FindReadTillIndexType } {
   const s1 = lineSeparator[0];
   const s2 = columnSeparator[0];
   const s3 = quote[0];
 
   for (let i = 0; i < a.length; i++) {
     if (i >= limit) {
-      return limit;
+      return { till: limit, type: FindReadTillIndexType.LIMIT };
     }
 
     if (a[i] === s1) {
@@ -928,7 +946,7 @@ function findReadTillIndex(
         matched++;
       }
       if (matched === lineSeparator.length) {
-        return i;
+        return { till: i, type: FindReadTillIndexType.LINE_SEPARATOR };
       }
     }
 
@@ -943,7 +961,7 @@ function findReadTillIndex(
         matched++;
       }
       if (matched === columnSeparator.length) {
-        return i;
+        return { till: i, type: FindReadTillIndexType.COLUMN_SEPARATOR };
       }
     }
 
@@ -958,10 +976,10 @@ function findReadTillIndex(
         matched++;
       }
       if (matched === quote.length) {
-        return i;
+        return { till: i, type: FindReadTillIndexType.QUOTE };
       }
     }
   }
 
-  return limit;
+  return { till: limit, type: FindReadTillIndexType.LIMIT };
 }
