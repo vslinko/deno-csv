@@ -19,7 +19,7 @@ import { readCSV } from "https://deno.land/x/csv/mod.ts";
 const f = await Deno.open("./example.csv");
 
 for await (const row of readCSV(f)) {
-  console.log('row:')
+  console.log("row:");
   for await (const cell of row) {
     console.log(`  cell: ${cell}`);
   }
@@ -42,7 +42,7 @@ const options = {
 };
 
 for await (const row of readCSV(f, options)) {
-  console.log('row:')
+  console.log("row:");
   for await (const cell of row) {
     console.log(`  cell: ${cell}`);
   }
@@ -84,12 +84,12 @@ const reader = new CSVReader(f, {
     row = [];
   },
   onEnd() {
-    console.log('end');
+    console.log("end");
     f.close();
   },
   onError(err) {
     console.error(err);
-  }
+  },
 });
 reader.read();
 ```
@@ -101,7 +101,11 @@ reader.read();
 ```ts
 import { writeCSV } from "https://deno.land/x/csv/mod.ts";
 
-const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+const f = await Deno.open("./example.csv", {
+  write: true,
+  create: true,
+  truncate: true,
+});
 const rows = [
   ["a", "b", "c"],
   ["1", "2", "3"],
@@ -117,12 +121,16 @@ f.close();
 ```ts
 import { writeCSVObjects } from "https://deno.land/x/csv/mod.ts";
 
-const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+const f = await Deno.open("./example.csv", {
+  write: true,
+  create: true,
+  truncate: true,
+});
 const header = ["a", "b", "c"];
-const asyncObjectsGenerator = async function*() {
+const asyncObjectsGenerator = async function* () {
   yield { a: "1", b: "2", c: "3" };
   yield { a: "4", b: "5", c: "6" };
-}
+};
 
 await writeCSVObjects(f, asyncObjectsGenerator(), { header });
 
@@ -134,7 +142,11 @@ f.close();
 ```ts
 import { CSVWriter } from "https://deno.land/x/csv/mod.ts";
 
-const f = await Deno.open("./example.csv", { write: true, create: true, truncate: true });
+const f = await Deno.open("./example.csv", {
+  write: true,
+  create: true,
+  truncate: true,
+});
 
 const writer = new CSVWriter(f, {
   columnSeparator: "\t",

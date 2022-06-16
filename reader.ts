@@ -406,8 +406,7 @@ export class CSVReader {
 
             readTillIndex = till;
             newLines = lineSeparatorsFound;
-            lastLineStartPos = this.currentPos +
-              lastLineSeparatorEndIndex;
+            lastLineStartPos = this.currentPos + lastLineSeparatorEndIndex;
           } else {
             readTillIndex = findReadTillIndex(
               slice,
@@ -424,10 +423,7 @@ export class CSVReader {
           this.readChars(readTillIndex);
         }
         if (newLines > 0) {
-          this.countLines(
-            newLines,
-            lastLineStartPos,
-          );
+          this.countLines(newLines, lastLineStartPos);
         }
         continue;
       }
