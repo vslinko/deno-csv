@@ -1,5 +1,5 @@
 import { readCSV } from "../mod.ts";
-import { Sha256 } from "https://deno.land/std/hash/sha256.ts";
+import { Sha256 } from "../dev_deps.ts";
 
 const file = await Deno.open(Deno.args[0]);
 const calculateHash = !!Deno.env.get("CALCULATE_HASH");
