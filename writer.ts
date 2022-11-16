@@ -59,7 +59,7 @@ export class CSVWriter {
     this.firstColumn = true;
   }
 
-  public async writeCell(
+  public writeCell(
     str: string | Uint8Array | AsyncIterable<Uint8Array>,
     options?: Partial<CSVWriteCellOptions>,
   ): Promise<void> {

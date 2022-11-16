@@ -16,11 +16,11 @@ class MyReader implements Deno.Reader {
     this.index = 0;
   }
 
-  public async read(p: Uint8Array): Promise<number | null> {
+  public read(p: Uint8Array): Promise<number | null> {
     const unread = this.buf.length - this.index;
 
     if (unread <= 0) {
-      return null;
+      return Promise.resolve(null);
     }
 
     const toRead = Math.min(p.length, unread);
@@ -28,7 +28,7 @@ class MyReader implements Deno.Reader {
     p.set(this.buf.subarray(this.index, this.index + toRead));
     this.index += toRead;
 
-    return toRead;
+    return Promise.resolve(toRead);
   }
 
   public reset() {
@@ -135,7 +135,7 @@ Deno.test({
   async fn() {
     const reader = new MyReader(`1,"2`);
 
-    assertRejects(
+    await assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -150,7 +150,7 @@ Deno.test({
   async fn() {
     const reader = new MyReader(`1,"2"3`);
 
-    assertRejects(
+    await assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -165,7 +165,7 @@ Deno.test({
   async fn() {
     const reader = new MyReader(`1,2 "3",4`);
 
-    assertRejects(
+    await assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -187,7 +187,7 @@ Deno.test({
 1"2
 1,2`);
 
-    assertRejects(
+await assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -218,6 +218,7 @@ Deno.test({
           _inputBufferIndexLimit: 1,
           _columnBufferReserve: 1,
           _stats: stats,
+        // deno-lint-ignore no-explicit-any
         } as any,
       ),
     );

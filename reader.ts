@@ -29,7 +29,8 @@ interface HiddenCSVReaderOptions extends CSVReaderOptions {
   };
 }
 
-function noop(a?: any): any {}
+// deno-lint-ignore no-explicit-any
+function noop(_?: any): any {}
 
 const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
   columnSeparator: ",",
@@ -195,11 +196,11 @@ export class CSVReader {
     return hasPrefixFrom(this.inputBuffer, chars, this.inputBufferIndex);
   }
 
-  private skip(chars: Uint8Array) {
-    this.debug(`skip: ${chars.length}`);
-    this.inputBufferIndex += chars.length;
-    this.inputBufferUnprocessed -= chars.length;
-    this.currentPos += chars.length;
+  private skip(length: number) {
+    this.debug(`skip: ${length}`);
+    this.inputBufferIndex += length;
+    this.inputBufferUnprocessed -= length;
+    this.currentPos += length;
   }
 
   private shrinkInputBuffer() {
@@ -314,7 +315,7 @@ export class CSVReader {
           this.processColumn();
           this.processRow();
         }
-        this.skip(this.lineSeparator);
+        this.skip(this.lineSeparator.length);
         this.countLine();
         this.emptyLine = true;
         continue;
@@ -323,7 +324,7 @@ export class CSVReader {
       if (!this.inColumn && this.hasNext(this.columnSeparator)) {
         this.debug("columnSeparator");
         this.processColumn();
-        this.skip(this.columnSeparator);
+        this.skip(this.columnSeparator.length);
         continue;
       }
 
@@ -333,7 +334,7 @@ export class CSVReader {
         if (this.hasNext(this.quote)) {
           this.debug("start quoted column");
           this.inQuote = true;
-          this.skip(this.quote);
+          this.skip(this.quote.length);
         } else {
           this.debug("start unquoted column");
         }
@@ -344,7 +345,7 @@ export class CSVReader {
         this.debug("double quote");
         this.columnBuffer.set(this.quote, this.columnBufferIndex);
         this.columnBufferIndex += this.quote.length;
-        this.skip(this.doubleQuote);
+        this.skip(this.doubleQuote.length);
         continue;
       }
 
@@ -352,7 +353,7 @@ export class CSVReader {
         this.debug("end quoted column");
         this.inQuote = false;
         this.inColumn = false;
-        this.skip(this.quote);
+        this.skip(this.quote.length);
         if (
           this.inputBufferUnprocessed > 0 &&
           !this.hasNext(this.lineSeparator) &&
@@ -500,6 +501,7 @@ class CSVStreamReader implements AsyncIterableIterator<string | symbol> {
       this.nextPromise = undefined;
       this.nextPromiseResolve = undefined;
       this.nextPromiseReject = undefined;
+      // deno-lint-ignore no-explicit-any
       cb(result as any);
     } else {
       this.buffer.push(result);
@@ -610,6 +612,7 @@ class CSVRowReader implements AsyncIterableIterator<string[]> {
       this.nextPromise = undefined;
       this.nextPromiseResolve = undefined;
       this.nextPromiseReject = undefined;
+      // deno-lint-ignore no-explicit-any
       cb(result as any);
     } else {
       this.buffer.push(result);
@@ -686,7 +689,7 @@ class RowIterator implements AsyncIterableIterator<string> {
     }
   }
 
-  async next(): Promise<IteratorResult<string, any>> {
+  async next(): Promise<IteratorResult<string>> {
     if (this.done) {
       return { done: true, value: null };
     }
@@ -755,6 +758,7 @@ class CSVRowIteratorReader implements AsyncIterableIterator<RowIterator> {
       this.nextPromise = undefined;
       this.nextPromiseResolve = undefined;
       this.nextPromiseReject = undefined;
+      // deno-lint-ignore no-explicit-any
       cb(result as any);
     } else {
       this.buffer.push(result);

@@ -23,6 +23,7 @@ export async function* dummyAsyncIterable(
   yield str;
 }
 
+// deno-lint-ignore no-explicit-any
 export function isAsyncIterable(iter: any): iter is AsyncIterable<any> {
   return !!iter[Symbol.asyncIterator];
 }
