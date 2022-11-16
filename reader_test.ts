@@ -187,7 +187,7 @@ Deno.test({
 1"2
 1,2`);
 
-await assertRejects(
+    await assertRejects(
       async () => {
         await asyncArrayFrom2(readCSV(reader));
       },
@@ -218,7 +218,7 @@ Deno.test({
           _inputBufferIndexLimit: 1,
           _columnBufferReserve: 1,
           _stats: stats,
-        // deno-lint-ignore no-explicit-any
+          // deno-lint-ignore no-explicit-any
         } as any,
       ),
     );
@@ -350,7 +350,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "readCSVRows should skip lines if options.fromLine and options.toLine passed",
+  name:
+    "readCSVRows should skip lines if options.fromLine and options.toLine passed",
   async fn() {
     const reader = new MyReader(
       `a,b
