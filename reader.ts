@@ -1,4 +1,4 @@
-import { concat, getLogger, iter, Logger, repeat } from "./deps.ts";
+import { concat, getLogger, iterateReader, Logger, repeat } from "./deps.ts";
 import { getUint8Array, hasPrefixFrom } from "./utils.ts";
 
 /** Common options for CSV reader module */
@@ -39,7 +39,7 @@ const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
   onRowEnd: noop,
   onEnd: noop,
   onError: noop,
-  _readerIteratorBufferSize: 1024 * 1024,
+  _readerIteratorBufferSize: 1024,
   _columnBufferMinStepSize: 1024,
   _inputBufferIndexLimit: 1024,
   _columnBufferReserve: 64,
@@ -139,7 +139,7 @@ export class CSVReader {
       this.minPossibleBufferReserve,
     );
 
-    this.readerIterator = iter(reader, {
+    this.readerIterator = iterateReader(reader, {
       bufSize: mergedOptions._readerIteratorBufferSize,
     });
 
