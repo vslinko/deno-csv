@@ -28,6 +28,25 @@ for await (const row of readCSV(f)) {
 f.close();
 ```
 
+#### Read specific lines of CSV file
+
+Line numbering starts from zero. `fromLine` is inclusive, `toLine` is exclusive.
+
+```ts
+import { readCSV } from "https://deno.land/x/csv/mod.ts";
+
+const f = await Deno.open("./example.csv");
+
+for await (const row of readCSV(f, { fromLine: 100, toLine: 200 })) {
+  console.log("row:");
+  for await (const cell of row) {
+    console.log(`  cell: ${cell}`);
+  }
+}
+
+f.close();
+```
+
 #### Read CSV file with custom separators
 
 ```ts

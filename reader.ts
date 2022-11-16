@@ -7,6 +7,8 @@ export interface CommonCSVReaderOptions {
   lineSeparator: string | Uint8Array;
   quote: string | Uint8Array;
   encoding?: string;
+  fromLine?: number;
+  toLine?: number;
 }
 
 /** Options for CSVReader class */
@@ -107,6 +109,8 @@ export class CSVReader {
   private currentPos: number;
   private linesProcessed: number;
   private lastLineStartPos: number;
+  private fromLine: number;
+  private toLine: number;
 
   constructor(reader: Deno.Reader, options?: Partial<CSVReaderOptions>) {
     this.decoder = new TextDecoder(options?.encoding);
@@ -114,6 +118,8 @@ export class CSVReader {
       ...defaultCSVReaderOptions,
       ...options,
     };
+    this.fromLine = mergedOptions.fromLine || 0;
+    this.toLine = mergedOptions.toLine || Number.MAX_VALUE;
     this.onCell = mergedOptions.onCell || noop;
     this.onRowEnd = mergedOptions.onRowEnd || noop;
     this.onEnd = mergedOptions.onEnd || noop;
@@ -297,6 +303,27 @@ export class CSVReader {
       ) {
         this.expandColumnBuffer();
         continue;
+      }
+
+      // skip line if it didn't reach fromLine
+      if (!this.inColumn && this.linesProcessed < this.fromLine) {
+        const slice = this.inputBuffer.subarray(this.inputBufferIndex);
+        const index = findReadTillLineSeparatorIndex(slice, this.lineSeparator);
+        if (index === null) {
+          this.skip(slice.length);
+          continue;
+        }
+        this.skip(index + this.lineSeparator.length);
+        this.countLine();
+        this.emptyLine = true;
+        continue;
+      }
+
+      // stop reading if toLine is reached
+      if (!this.inColumn && this.linesProcessed > this.toLine) {
+        this.debug("eof");
+        this.onEnd();
+        return;
       }
 
       if (!this.inColumn && this.inputBufferUnprocessed === 0) {
@@ -986,4 +1013,30 @@ function findReadTillIndex(
   }
 
   return { till: limit, type: FindReadTillIndexType.LIMIT };
+}
+
+function findReadTillLineSeparatorIndex(
+  a: Uint8Array,
+  lineSeparator: Uint8Array,
+): number | null {
+  const s1 = lineSeparator[0];
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] === s1) {
+      let matched = 1;
+      let j = i;
+      while (matched < lineSeparator.length) {
+        j++;
+        if (a[j] !== lineSeparator[j - i]) {
+          break;
+        }
+        matched++;
+      }
+      if (matched === lineSeparator.length) {
+        return i;
+      }
+    }
+  }
+
+  return null;
 }

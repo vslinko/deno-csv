@@ -348,3 +348,21 @@ Deno.test({
     assertEquals(count, 1);
   },
 });
+
+Deno.test({
+  name: "readCSVRows should skip lines if options.fromLine and options.toLine passed",
+  async fn() {
+    const reader = new MyReader(
+      `a,b
+c,d
+e,f
+g,h`,
+    );
+
+    const rows = await asyncArrayFrom(
+      readCSVRows(reader, { fromLine: 1, toLine: 2 }),
+    );
+
+    assertEquals(rows, [["c", "d"], ["e", "f"]]);
+  },
+});
