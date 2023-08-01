@@ -319,8 +319,9 @@ export class CSVReader {
         continue;
       }
 
+      // linesProcessed start at 1 and toLine at 0
       // stop reading if toLine is reached
-      if (!this.inColumn && this.linesProcessed > this.toLine) {
+      if (!this.inColumn && this.linesProcessed >= this.toLine) {
         this.debug("eof");
         this.onEnd();
         return;

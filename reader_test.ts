@@ -361,9 +361,49 @@ g,h`,
     );
 
     const rows = await asyncArrayFrom(
-      readCSVRows(reader, { fromLine: 1, toLine: 2 }),
+      readCSVRows(reader, { fromLine: 1, toLine: 3 }),
     );
 
     assertEquals(rows, [["c", "d"], ["e", "f"]]);
+  },
+});
+
+Deno.test({
+  name: "readCSVRows options.toLine should be exclusive",
+  async fn() {
+    const reader = new MyReader(
+      `a,b
+c,d
+e,f
+g,h`,
+    );
+
+    const rows = await asyncArrayFrom(
+      readCSVRows(reader, { fromLine: 1, toLine: 2 }),
+    );
+
+    assertEquals(rows, [["c", "d"]]);
+  },
+});
+
+Deno.test({
+  name: "readCSVRows can read only the first line",
+  async fn() {
+    const reader = new MyReader(
+      `1,2,3
+a,b,c
+!,@,#`,
+    );
+
+    const rows = await asyncArrayFrom(
+      readCSVRows(reader, {
+        fromLine: 0,
+        toLine: 1,
+      }),
+    );
+
+    assertEquals(rows, [
+      ["1", "2", "3"],
+    ]);
   },
 });
