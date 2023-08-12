@@ -1,3 +1,4 @@
+import { concat } from "./deps.ts";
 import { assertEquals, assertRejects } from "./dev_deps.ts";
 import {
   readCSV,
@@ -11,8 +12,12 @@ class MyReader implements Deno.Reader {
   private buf: Uint8Array;
   private index: number;
 
-  constructor(content: string) {
+  constructor(content: string, options: { withBom?: boolean } = {}) {
+    const opts = { withBom: false, ...options };
     this.buf = new TextEncoder().encode(content);
+    if (opts.withBom) {
+      this.buf = concat(new Uint8Array([0xef, 0xbb, 0xbf]), this.buf);
+    }
     this.index = 0;
   }
 
@@ -60,6 +65,17 @@ a,b,c`);
       ["1", "2", "3"],
       ["a", "b", "c"],
     ]);
+  },
+});
+
+Deno.test({
+  name: "readCSV parses file with UTF BOM",
+  async fn() {
+    const reader = new MyReader(`"1","2"`, { withBom: true });
+
+    const rows = await asyncArrayFrom2(readCSV(reader));
+
+    assertEquals(rows, [["1", "2"]]);
   },
 });
 
@@ -210,17 +226,14 @@ Deno.test({
     );
 
     const rows = await asyncArrayFrom2(
-      readCSV(
-        reader,
-        {
-          _readerIteratorBufferSize: 1,
-          _columnBufferMinStepSize: 1,
-          _inputBufferIndexLimit: 1,
-          _columnBufferReserve: 1,
-          _stats: stats,
-          // deno-lint-ignore no-explicit-any
-        } as any,
-      ),
+      readCSV(reader, {
+        _readerIteratorBufferSize: 1,
+        _columnBufferMinStepSize: 1,
+        _inputBufferIndexLimit: 1,
+        _columnBufferReserve: 1,
+        _stats: stats,
+        // deno-lint-ignore no-explicit-any
+      } as any),
     );
 
     assertEquals(rows, [
@@ -364,7 +377,10 @@ g,h`,
       readCSVRows(reader, { fromLine: 1, toLine: 3 }),
     );
 
-    assertEquals(rows, [["c", "d"], ["e", "f"]]);
+    assertEquals(rows, [
+      ["c", "d"],
+      ["e", "f"],
+    ]);
   },
 });
 
@@ -402,8 +418,6 @@ a,b,c
       }),
     );
 
-    assertEquals(rows, [
-      ["1", "2", "3"],
-    ]);
+    assertEquals(rows, [["1", "2", "3"]]);
   },
 });

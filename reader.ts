@@ -34,6 +34,8 @@ interface HiddenCSVReaderOptions extends CSVReaderOptions {
 // deno-lint-ignore no-explicit-any
 function noop(_?: any): any {}
 
+const utfBom = new Uint8Array([0xef, 0xbb, 0xbf]);
+
 const defaultCSVReaderOptions: HiddenCSVReaderOptions = {
   columnSeparator: ",",
   lineSeparator: "\n",
@@ -325,6 +327,12 @@ export class CSVReader {
         this.debug("eof");
         this.onEnd();
         return;
+      }
+
+      // skip UTF BOM
+      if (!this.inColumn && this.currentPos === 0 && this.hasNext(utfBom)) {
+        this.skip(utfBom.length);
+        continue;
       }
 
       if (!this.inColumn && this.inputBufferUnprocessed === 0) {
