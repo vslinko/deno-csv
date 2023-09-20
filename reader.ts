@@ -189,6 +189,7 @@ export class CSVReader {
   }
 
   private processColumn() {
+    this.emptyLine = false;
     const result = this.decoder.decode(
       this.columnBuffer.subarray(0, this.columnBufferIndex),
     );
@@ -625,17 +626,20 @@ class CSVRowReader implements AsyncIterableIterator<string[]> {
   }
 
   private onCell(cell: string) {
+    console.log(`On cell: ${cell}`);
     this.row.push(cell);
   }
 
   private onRowEnd() {
     const row = this.row;
     this.row = [];
+    console.log(`On row end`, row);
     this.process({ done: false, value: row });
   }
 
   private onEnd() {
     this.done = true;
+    console.log(`On end`);
     this.process({ done: true, value: undefined });
   }
 

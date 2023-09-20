@@ -421,3 +421,22 @@ a,b,c
     assertEquals(rows, [["1", "2", "3"]]);
   },
 });
+
+Deno.test({
+  name: "readCSVRows can read empty lines (not prepends to the next line)",
+  async fn() {
+    const reader = new MyReader(
+      `col1,col2,col3
+a,b,c
+,,
+d,e,f`
+    );
+    const rows = await asyncArrayFrom(readCSVRows(reader));
+    assertEquals(rows, [
+      ["col1", "col2", "col3"],
+      ["a", "b", "c"],
+      ["", "", ""],
+      ["d", "e", "f"]
+    ])
+  }
+})
