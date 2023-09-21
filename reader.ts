@@ -189,7 +189,6 @@ export class CSVReader {
   }
 
   private processColumn() {
-    this.emptyLine = false;
     const result = this.decoder.decode(
       this.columnBuffer.subarray(0, this.columnBufferIndex),
     );
@@ -360,6 +359,7 @@ export class CSVReader {
 
       if (!this.inColumn && this.hasNext(this.columnSeparator)) {
         this.debug("columnSeparator");
+        this.emptyLine = false;
         this.processColumn();
         this.skip(this.columnSeparator.length);
         continue;

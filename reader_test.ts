@@ -429,14 +429,14 @@ Deno.test({
       `col1,col2,col3
 a,b,c
 ,,
-d,e,f`
+d,e,f`,
     );
     const rows = await asyncArrayFrom(readCSVRows(reader));
     assertEquals(rows, [
       ["col1", "col2", "col3"],
       ["a", "b", "c"],
       ["", "", ""],
-      ["d", "e", "f"]
-    ])
-  }
-})
+      ["d", "e", "f"],
+    ]);
+  },
+});
