@@ -359,6 +359,7 @@ export class CSVReader {
 
       if (!this.inColumn && this.hasNext(this.columnSeparator)) {
         this.debug("columnSeparator");
+        this.emptyLine = false;
         this.processColumn();
         this.skip(this.columnSeparator.length);
         continue;
