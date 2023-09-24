@@ -9,4 +9,10 @@ lint:
 benchmark:
 	cd benchmarks && make
 
+test_wasm.ts: test.wasm
+	deno run --allow-read=test.wasm convert.ts test.wasm > test_wasm.ts
+
+test.wasm: test.wat
+	wat2wasm test.wat
+
 .PHONY: test lint benchmark
