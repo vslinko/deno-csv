@@ -1,5 +1,7 @@
-import { concat } from "./deps.ts";
-import { assertEquals, assertRejects } from "./dev_deps.ts";
+import type { Reader } from "@std/io/types";
+import { concat } from "@std/bytes/concat";
+import { assertRejects } from "@std/assert/assert-rejects";
+import { assertEquals } from "@std/assert/assert-equals";
 import {
   newLine,
   readCSV,
@@ -9,7 +11,7 @@ import {
 } from "./reader.ts";
 import { asyncArrayFrom, asyncArrayFrom2 } from "./utils.ts";
 
-class MyReader implements Deno.Reader {
+class MyReader implements Reader {
   private buf: Uint8Array;
   private index: number;
 
@@ -17,7 +19,7 @@ class MyReader implements Deno.Reader {
     const opts = { withBom: false, ...options };
     this.buf = new TextEncoder().encode(content);
     if (opts.withBom) {
-      this.buf = concat(new Uint8Array([0xef, 0xbb, 0xbf]), this.buf);
+      this.buf = concat([new Uint8Array([0xef, 0xbb, 0xbf]), this.buf]);
     }
     this.index = 0;
   }

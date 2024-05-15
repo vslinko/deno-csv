@@ -1,4 +1,8 @@
-import { concat, getLogger, iterateReader, Logger, repeat } from "./deps.ts";
+import type { Reader } from "@std/io/types";
+import { concat } from "@std/bytes/concat";
+import { repeat } from "@std/bytes/repeat";
+import { getLogger, Logger } from "@std/log";
+import { iterateReader } from "@std/io/iterate-reader";
 import { getUint8Array, hasPrefixFrom } from "./utils.ts";
 
 /** Common options for CSV reader module */
@@ -114,7 +118,7 @@ export class CSVReader {
   private fromLine: number;
   private toLine: number;
 
-  constructor(reader: Deno.Reader, options?: Partial<CSVReaderOptions>) {
+  constructor(reader: Reader, options?: Partial<CSVReaderOptions>) {
     this.decoder = new TextDecoder(options?.encoding);
     const mergedOptions: HiddenCSVReaderOptions = {
       ...defaultCSVReaderOptions,
@@ -240,7 +244,7 @@ export class CSVReader {
     if (done) {
       this.readerEmpty = true;
     } else {
-      this.inputBuffer = concat(this.inputBuffer, value);
+      this.inputBuffer = concat([this.inputBuffer, value]);
       this.inputBufferUnprocessed += value.length;
     }
   }
@@ -500,7 +504,7 @@ class CSVStreamReader implements AsyncIterableIterator<string | symbol> {
   ) => void;
   private nextPromiseReject?: (err: Error) => void;
 
-  constructor(reader: Deno.Reader, options?: Partial<CommonCSVReaderOptions>) {
+  constructor(reader: Reader, options?: Partial<CommonCSVReaderOptions>) {
     this.buffer = [];
     this.done = false;
     this.reader = new CSVReader(reader, {
@@ -597,7 +601,7 @@ export const newLine = Symbol("newLine");
  *       }
  */
 export function readCSVStream(
-  reader: Deno.Reader,
+  reader: Reader,
   options?: Partial<CommonCSVReaderOptions>,
 ): AsyncIterable<string | symbol> {
   return new CSVStreamReader(reader, options);
@@ -612,7 +616,7 @@ class CSVRowReader implements AsyncIterableIterator<string[]> {
   private nextPromiseResolve?: (res: IteratorResult<string[], void>) => void;
   private nextPromiseReject?: (err: Error) => void;
 
-  constructor(reader: Deno.Reader, options?: Partial<CommonCSVReaderOptions>) {
+  constructor(reader: Reader, options?: Partial<CommonCSVReaderOptions>) {
     this.buffer = [];
     this.done = false;
     this.row = [];
@@ -701,7 +705,7 @@ class CSVRowReader implements AsyncIterableIterator<string[]> {
  *       }
  */
 export function readCSVRows(
-  reader: Deno.Reader,
+  reader: Reader,
   options?: Partial<CommonCSVReaderOptions>,
 ): AsyncIterable<string[]> {
   return new CSVRowReader(reader, options);
@@ -740,7 +744,7 @@ class RowIterator implements AsyncIterableIterator<string> {
     }
 
     const { done, value } = this.buffer.length > 0
-      ? this.buffer.shift() as IteratorResult<string | symbol>
+      ? (this.buffer.shift() as IteratorResult<string | symbol>)
       : await this.onRequested();
 
     if (done || value === newLine) {
@@ -767,7 +771,7 @@ class CSVRowIteratorReader implements AsyncIterableIterator<RowIterator> {
   ) => void;
   private nextPromiseReject?: (err: Error) => void;
 
-  constructor(reader: Deno.Reader, options?: Partial<CommonCSVReaderOptions>) {
+  constructor(reader: Reader, options?: Partial<CommonCSVReaderOptions>) {
     this.done = false;
     this.buffer = [];
     this.reader = new CSVReader(reader, {
@@ -875,7 +879,7 @@ class CSVRowIteratorReader implements AsyncIterableIterator<RowIterator> {
  *       }
  */
 export function readCSV(
-  reader: Deno.Reader,
+  reader: Reader,
   options?: Partial<CommonCSVReaderOptions>,
 ): AsyncIterable<AsyncIterable<string>> {
   return new CSVRowIteratorReader(reader, options);
@@ -888,7 +892,7 @@ export function readCSV(
  *       }
  */
 export async function* readCSVObjects(
-  reader: Deno.Reader,
+  reader: Reader,
   options?: Partial<CommonCSVReaderOptions>,
 ): AsyncIterable<{ [key: string]: string }> {
   let header: string[] | undefined;

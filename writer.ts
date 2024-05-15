@@ -1,4 +1,5 @@
-import { concat, indexOfNeedle } from "./deps.ts";
+import { concat } from "@std/bytes/concat";
+import { indexOfNeedle } from "@std/bytes/index-of-needle";
 import {
   dummyAsyncIterable,
   getUint8Array,
@@ -113,7 +114,7 @@ export class CSVWriter {
         if (done) {
           inputBufferEmpty = true;
         } else {
-          inputBuffer = concat(inputBuffer, value);
+          inputBuffer = concat([inputBuffer, value]);
         }
         continue;
       }

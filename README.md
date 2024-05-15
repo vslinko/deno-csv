@@ -14,7 +14,7 @@
 #### Read CSV file
 
 ```ts
-import { readCSV } from "https://deno.land/x/csv/mod.ts";
+import { readCSV } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv");
 
@@ -33,7 +33,7 @@ f.close();
 Line numbering starts from zero. `fromLine` is inclusive, `toLine` is exclusive.
 
 ```ts
-import { readCSV } from "https://deno.land/x/csv/mod.ts";
+import { readCSV } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv");
 
@@ -50,7 +50,7 @@ f.close();
 #### Read CSV file with custom separators
 
 ```ts
-import { readCSV } from "https://deno.land/x/csv/mod.ts";
+import { readCSV } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv");
 
@@ -73,7 +73,7 @@ f.close();
 #### Read objects from CSV file with header row
 
 ```ts
-import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
+import { readCSVObjects } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv");
 
@@ -87,7 +87,7 @@ f.close();
 #### Read CSV file manually
 
 ```ts
-import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
+import { readCSVObjects } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv");
 
@@ -118,7 +118,7 @@ reader.read();
 #### Write CSV file
 
 ```ts
-import { writeCSV } from "https://deno.land/x/csv/mod.ts";
+import { writeCSV } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv", {
   write: true,
@@ -138,7 +138,7 @@ f.close();
 #### Write objects asynchronously to CSV file
 
 ```ts
-import { writeCSVObjects } from "https://deno.land/x/csv/mod.ts";
+import { writeCSVObjects } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv", {
   write: true,
@@ -159,7 +159,7 @@ f.close();
 #### Write CSV file manually
 
 ```ts
-import { CSVWriter } from "https://deno.land/x/csv/mod.ts";
+import { CSVWriter } from "jsr:@vslinko/csv";
 
 const f = await Deno.open("./example.csv", {
   write: true,

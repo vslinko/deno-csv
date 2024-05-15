@@ -1,0 +1,63 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "jsr:@std/assert@0.224.0": "jsr:@std/assert@0.224.0",
+      "jsr:@std/assert@^0.224.0": "jsr:@std/assert@0.224.0",
+      "jsr:@std/bytes@0.224.0": "jsr:@std/bytes@0.224.0",
+      "jsr:@std/bytes@^0.224.0": "jsr:@std/bytes@0.224.0",
+      "jsr:@std/fmt@^0.224.0": "jsr:@std/fmt@0.224.0",
+      "jsr:@std/fs@^0.224.0": "jsr:@std/fs@0.224.0",
+      "jsr:@std/internal@^0.224.0": "jsr:@std/internal@0.224.0",
+      "jsr:@std/io@0.224.0": "jsr:@std/io@0.224.0",
+      "jsr:@std/io@^0.224.0": "jsr:@std/io@0.224.0",
+      "jsr:@std/log@0.224.0": "jsr:@std/log@0.224.0"
+    },
+    "jsr": {
+      "@std/assert@0.224.0": {
+        "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f",
+        "dependencies": [
+          "jsr:@std/fmt@^0.224.0",
+          "jsr:@std/internal@^0.224.0"
+        ]
+      },
+      "@std/bytes@0.224.0": {
+        "integrity": "a2250e1d0eb7d1c5a426f21267ab9bdeac2447fa87a3d0d1a467d3f7a6058e49"
+      },
+      "@std/fmt@0.224.0": {
+        "integrity": "e20e9a2312a8b5393272c26191c0a68eda8d2c4b08b046bad1673148f1d69851"
+      },
+      "@std/fs@0.224.0": {
+        "integrity": "52a5ec89731ac0ca8f971079339286f88c571a4d61686acf75833f03a89d8e69"
+      },
+      "@std/internal@0.224.0": {
+        "integrity": "afc50644f9cdf4495eeb80523a8f6d27226b4b36c45c7c195dfccad4b8509291"
+      },
+      "@std/io@0.224.0": {
+        "integrity": "0aff885d21d829c050b8a08b1d71b54aed5841aecf227f8d77e99ec529a11e8e",
+        "dependencies": [
+          "jsr:@std/assert@^0.224.0",
+          "jsr:@std/bytes@^0.224.0"
+        ]
+      },
+      "@std/log@0.224.0": {
+        "integrity": "24c8a38f3f322e3d33c3137d5562acad25830c01bd5838ade6c5a62118882deb",
+        "dependencies": [
+          "jsr:@std/assert@^0.224.0",
+          "jsr:@std/fmt@^0.224.0",
+          "jsr:@std/fs@^0.224.0",
+          "jsr:@std/io@^0.224.0"
+        ]
+      }
+    }
+  },
+  "remote": {},
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@0.224.0",
+      "jsr:@std/bytes@0.224.0",
+      "jsr:@std/io@0.224.0",
+      "jsr:@std/log@0.224.0"
+    ]
+  }
+}

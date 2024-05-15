@@ -1,4 +1,5 @@
-import { assertEquals, Buffer } from "./dev_deps.ts";
+import { assertEquals } from "@std/assert/assert-equals";
+import { Buffer } from "@std/io/buffer";
 import { CSVWriter, writeCSV, writeCSVObjects } from "./writer.ts";
 
 Deno.test({

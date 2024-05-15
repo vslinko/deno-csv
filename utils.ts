@@ -1,4 +1,4 @@
-import { getLogger } from "./deps.ts";
+import { getLogger } from "@std/log";
 
 const enc = new TextEncoder();
 
