@@ -1,7 +1,8 @@
 import type { Reader } from "@std/io/types";
 import { concat } from "@std/bytes/concat";
 import { repeat } from "@std/bytes/repeat";
-import { getLogger, Logger } from "@std/log";
+import type { Logger } from "@std/log";
+import { getLogger } from "@std/log";
 import { iterateReader } from "@std/io/iterate-reader";
 import { getUint8Array, hasPrefixFrom } from "./utils.ts";
 

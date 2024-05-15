@@ -1,12 +1,12 @@
 import { concat } from "@std/bytes/concat";
 import { indexOfNeedle } from "@std/bytes/index-of-needle";
+import type { SyncAsyncIterable } from "./utils.ts";
 import {
   dummyAsyncIterable,
   getUint8Array,
   hasPrefixFrom,
   isAsyncIterable,
   makeAsyncIterable,
-  SyncAsyncIterable,
 } from "./utils.ts";
 
 /** Options for CSV writer */
