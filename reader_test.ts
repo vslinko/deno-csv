@@ -1,6 +1,7 @@
 import { concat } from "./deps.ts";
 import { assertEquals, assertRejects } from "./dev_deps.ts";
 import {
+  newLine,
   readCSV,
   readCSVObjects,
   readCSVRows,
@@ -263,6 +264,25 @@ Deno.test({
 });
 
 Deno.test({
+  name: "readCSV ignores trailing empty lines",
+  async fn() {
+    const reader = new MyReader(`1,2,3
+
+a,b,c
+
+
+`);
+
+    const rows = await asyncArrayFrom2(readCSV(reader));
+
+    assertEquals(rows, [
+      ["1", "2", "3"],
+      ["a", "b", "c"],
+    ]);
+  },
+});
+
+Deno.test({
   name: "readCSVStream couldn't be used twice",
   async fn() {
     const reader = new MyReader(`a,b\n1,2\n3,4`);
@@ -280,6 +300,22 @@ Deno.test({
 
     assertEquals(a, 9);
     assertEquals(b, 0);
+  },
+});
+
+Deno.test({
+  name: "readCSVStream ignores trailing empty lines",
+  async fn() {
+    const reader = new MyReader(`1,2,3
+
+a,b,c
+
+
+`);
+
+    const rows = await asyncArrayFrom(readCSVStream(reader));
+
+    assertEquals(rows, ["1", "2", "3", newLine, "a", "b", "c", newLine]);
   },
 });
 
@@ -437,6 +473,25 @@ d,e,f`,
       ["a", "b", "c"],
       ["", "", ""],
       ["d", "e", "f"],
+    ]);
+  },
+});
+
+Deno.test({
+  name: "readCSVRows ignores trailing empty lines",
+  async fn() {
+    const reader = new MyReader(`1,2,3
+
+a,b,c
+
+
+`);
+
+    const rows = await asyncArrayFrom(readCSVRows(reader));
+
+    assertEquals(rows, [
+      ["1", "2", "3"],
+      ["a", "b", "c"],
     ]);
   },
 });

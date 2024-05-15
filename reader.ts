@@ -709,10 +709,12 @@ export function readCSVRows(
 
 class RowIterator implements AsyncIterableIterator<string> {
   private onRequested: () => Promise<IteratorResult<string | symbol>>;
+  private buffer: Array<IteratorResult<string | symbol>>;
   private done: boolean;
 
   constructor(onRequested: () => Promise<IteratorResult<string | symbol>>) {
     this.onRequested = onRequested;
+    this.buffer = [];
     this.done = false;
   }
 
@@ -726,12 +728,20 @@ class RowIterator implements AsyncIterableIterator<string> {
     }
   }
 
+  async lookForward(): Promise<IteratorResult<string | symbol>> {
+    const res = await this.onRequested();
+    this.buffer.push(res);
+    return res;
+  }
+
   async next(): Promise<IteratorResult<string>> {
     if (this.done) {
       return { done: true, value: null };
     }
 
-    const { done, value } = await this.onRequested();
+    const { done, value } = this.buffer.length > 0
+      ? this.buffer.shift() as IteratorResult<string | symbol>
+      : await this.onRequested();
 
     if (done || value === newLine) {
       this.done = true;
@@ -842,6 +852,10 @@ class CSVRowIteratorReader implements AsyncIterableIterator<RowIterator> {
     }
 
     this.rowIterator = new RowIterator(() => this.onRequested());
+    const nextCell = await this.rowIterator.lookForward();
+    if (this.done && nextCell.done) {
+      return { done: true, value: undefined };
+    }
 
     return { done: false, value: this.rowIterator };
   }
