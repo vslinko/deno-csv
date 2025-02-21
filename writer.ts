@@ -196,7 +196,7 @@ export async function writeCSVObjects(
   writer: Deno.Writer,
   iter: SyncAsyncIterable<{ [key: string]: string }>,
   options: Partial<CSVWriterOptions & CSVWriteCellOptions> & {
-    header: string[];
+    header: readonly string[];
   },
 ) {
   const { header } = options;
