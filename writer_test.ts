@@ -101,3 +101,19 @@ Deno.test({
     assertEquals(new TextDecoder().decode(buf.bytes()), `a,b,c\n1,2,3\n4,5,6`);
   },
 });
+
+Deno.test({
+  name: "writeCSVObjects can use readonly header",
+  async fn() {
+    const buf = new Buffer();
+    const header = ["a", "b", "c"] as const;
+    const asyncRows = async function* () {
+      yield { a: "1", b: "2", c: "3" };
+      yield { a: "4", b: "5", c: "6" };
+    };
+
+    await writeCSVObjects(buf, asyncRows(), { header });
+
+    assertEquals(new TextDecoder().decode(buf.bytes()), `a,b,c\n1,2,3\n4,5,6`);
+  },
+});
