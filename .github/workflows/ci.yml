@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: "1.42.4"
+          deno-version: "2.2.1"
       - run: deno --version
       - run: deno lint
       - run: deno task test

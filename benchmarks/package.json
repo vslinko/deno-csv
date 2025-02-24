@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "csv-parse": "^4.9.1"
+    "csv-parse": "^5.6.0"
   }
 }

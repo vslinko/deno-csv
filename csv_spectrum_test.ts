@@ -1,5 +1,5 @@
 import { readCSVObjects } from "./mod.ts";
-import { assertEquals } from "@std/assert/assert-equals";
+import { assertEquals } from "@std/assert/equals";
 
 for await (const file of Deno.readDir("./third_party/csv-spectrum/csvs")) {
   const csvFilePath = "./third_party/csv-spectrum/csvs/" + file.name;

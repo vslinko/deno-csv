@@ -1,4 +1,4 @@
-const csvParse = require("csv-parse");
+const {parse} = require("csv-parse");
 const fs = require("fs");
 const crypto = require("crypto");
 
@@ -7,7 +7,7 @@ const calculateRowHash = !!process.env.CALCULATE_ROW_HASH;
 const hash = crypto.createHash("sha256");
 
 const file = fs.createReadStream(process.argv[2]);
-const csvParser = csvParse();
+const csvParser = parse();
 
 let lines = 0;
 

@@ -1,7 +1,7 @@
 import type { Reader } from "@std/io/types";
 import { concat } from "@std/bytes/concat";
-import { assertRejects } from "@std/assert/assert-rejects";
-import { assertEquals } from "@std/assert/assert-equals";
+import { assertRejects } from "@std/assert/rejects";
+import { assertEquals } from "@std/assert/equals";
 import {
   newLine,
   readCSV,

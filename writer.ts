@@ -1,4 +1,4 @@
-import { concat } from "@std/bytes/concat";
+import type { Writer } from "@std/io/types";
 import { indexOfNeedle } from "@std/bytes/index-of-needle";
 import type { SyncAsyncIterable } from "./utils.ts";
 import {
@@ -38,13 +38,13 @@ const defaultCSVWriterOptions = {
  *       await writer.writeCell('1"2');
  */
 export class CSVWriter {
-  private writer: Deno.Writer;
+  private writer: Writer;
   private columnSeparator: Uint8Array;
   private lineSeparator: Uint8Array;
   private quote: Uint8Array;
   private firstColumn: boolean;
 
-  constructor(writer: Deno.Writer, options?: Partial<CSVWriterOptions>) {
+  constructor(writer: Writer, options?: Partial<CSVWriterOptions>) {
     this.writer = writer;
     this.columnSeparator = getUint8Array(
       (options && options.columnSeparator) ||
@@ -114,7 +114,12 @@ export class CSVWriter {
         if (done) {
           inputBufferEmpty = true;
         } else {
-          inputBuffer = concat([inputBuffer, value]);
+          const newInputBuffer = new Uint8Array(
+            inputBuffer.length + value.length,
+          );
+          newInputBuffer.set(inputBuffer);
+          newInputBuffer.set(value, inputBuffer.length);
+          inputBuffer = newInputBuffer;
         }
         continue;
       }
@@ -159,7 +164,7 @@ export class CSVWriter {
  *       await writeCSV(f, asyncRowGenerator());
  */
 export async function writeCSV(
-  writer: Deno.Writer,
+  writer: Writer,
   iter: SyncAsyncIterable<
     SyncAsyncIterable<string | Uint8Array | AsyncIterable<Uint8Array>>
   >,
@@ -193,7 +198,7 @@ export async function writeCSV(
  *       await writeCSVObjects(f, asyncObjectsGenerator(), { header: ["a", "b", "c"] });
  */
 export async function writeCSVObjects(
-  writer: Deno.Writer,
+  writer: Writer,
   iter: SyncAsyncIterable<{ [key: string]: string }>,
   options: Partial<CSVWriterOptions & CSVWriteCellOptions> & {
     header: readonly string[];

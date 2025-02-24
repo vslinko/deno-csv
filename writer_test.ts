@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert/assert-equals";
+import { assertEquals } from "@std/assert/equals";
 import { Buffer } from "@std/io/buffer";
 import { CSVWriter, writeCSV, writeCSVObjects } from "./writer.ts";
 

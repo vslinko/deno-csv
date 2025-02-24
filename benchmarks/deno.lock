@@ -1,23 +1,14 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@std/assert@1.0.11": "1.0.11",
     "jsr:@std/bytes@1.0.5": "1.0.5",
-    "jsr:@std/bytes@^1.0.5": "1.0.5",
     "jsr:@std/fmt@^1.0.5": "1.0.5",
     "jsr:@std/fs@^1.0.11": "1.0.13",
-    "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@0.225.2": "0.225.2",
     "jsr:@std/io@~0.225.2": "0.225.2",
     "jsr:@std/log@0.224.14": "0.224.14"
   },
   "jsr": {
-    "@std/assert@1.0.11": {
-      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
-      "dependencies": [
-        "jsr:@std/internal"
-      ]
-    },
     "@std/bytes@1.0.5": {
       "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
     },
@@ -27,14 +18,8 @@
     "@std/fs@1.0.13": {
       "integrity": "756d3ff0ade91c9e72b228e8012b6ff00c3d4a4ac9c642c4dac083536bf6c605"
     },
-    "@std/internal@1.0.5": {
-      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
-    },
     "@std/io@0.225.2": {
-      "integrity": "3c740cd4ee4c082e6cfc86458f47e2ab7cb353dc6234d5e9b1f91a2de5f4d6c7",
-      "dependencies": [
-        "jsr:@std/bytes@^1.0.5"
-      ]
+      "integrity": "3c740cd4ee4c082e6cfc86458f47e2ab7cb353dc6234d5e9b1f91a2de5f4d6c7"
     },
     "@std/log@0.224.14": {
       "integrity": "257f7adceee3b53bb2bc86c7242e7d1bc59729e57d4981c4a7e5b876c808f05e",
@@ -45,12 +30,25 @@
       ]
     }
   },
+  "remote": {
+    "https://deno.land/x/base64@v0.2.1/base.ts": "47dc8d68f07dc91524bdd6db36eccbe59cf4d935b5fc09f27357a3944bb3ff7b",
+    "https://deno.land/x/base64@v0.2.1/base64url.ts": "18bbf879b31f1f32cca8adaa2b6885ae325c2cec6a66c5817b684ca12c46ad5e",
+    "https://deno.land/x/base64@v0.2.1/mod.ts": "1cbdc4ba7229d3c6d1763fecdb9d46844777c7e153abb6dabea8b0dd01448db4",
+    "https://denopkg.com/chiefbiiko/sha256@v2.0.0/deps.ts": "434b70f37ed145ca5259353c96fdee1e7d1cd8c6a32baad9dce2aedc79d0a3bc",
+    "https://denopkg.com/chiefbiiko/sha256@v2.0.0/mod.ts": "f109aa5eeb201a0cbfaf44950b70a429838b187e8a84c5b810c1ac84953427cc",
+    "https://denopkg.com/chiefbiiko/std-encoding@v1.1.1/mod.ts": "e61017da4cef146863d614a961b4e61f1df14b72c906092bd02161f913e76522"
+  },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1.0.11",
       "jsr:@std/bytes@1.0.5",
       "jsr:@std/io@0.225.2",
       "jsr:@std/log@0.224.14"
-    ]
+    ],
+    "packageJson": {
+      "dependencies": [
+        "npm:csv-parse@^5.6.0"
+      ]
+    }
   }
 }
